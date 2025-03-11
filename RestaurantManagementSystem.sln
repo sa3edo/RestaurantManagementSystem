@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestaurantManagementSystem"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Models", "Models\Models.csproj", "{5A43CD93-6C08-43E7-BAB9-24A522A73A3A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utility", "Utility\Utility.csproj", "{FB585EDA-F1CD-4C7F-B8F5-CFF162EEDEA3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "infrastructures", "infrastructures\infrastructures.csproj", "{2EF6C899-C03E-466B-A015-916EF9419F99}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{5A43CD93-6C08-43E7-BAB9-24A522A73A3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5A43CD93-6C08-43E7-BAB9-24A522A73A3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A43CD93-6C08-43E7-BAB9-24A522A73A3A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB585EDA-F1CD-4C7F-B8F5-CFF162EEDEA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB585EDA-F1CD-4C7F-B8F5-CFF162EEDEA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB585EDA-F1CD-4C7F-B8F5-CFF162EEDEA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB585EDA-F1CD-4C7F-B8F5-CFF162EEDEA3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2EF6C899-C03E-466B-A015-916EF9419F99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2EF6C899-C03E-466B-A015-916EF9419F99}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2EF6C899-C03E-466B-A015-916EF9419F99}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2EF6C899-C03E-466B-A015-916EF9419F99}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

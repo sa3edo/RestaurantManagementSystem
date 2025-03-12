@@ -4,7 +4,7 @@ using System.Linq;
 
 using RestaurantManagementSystem.Repository.IRepository;
 
-namespace WebsitSellsLaptop.Repository
+namespace RestaurantManagementSystem.Repository
 {
     public class Repository<T>  : IRepository<T> where T : class
 

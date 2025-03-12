@@ -31,8 +31,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\infrastructures\infrastructures.csproj" />
-    <ProjectReference Include="..\Models\Models.csproj" />
     <ProjectReference Include="..\Utility\Utility.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Controllers\" />
   </ItemGroup>
 
 </Project>

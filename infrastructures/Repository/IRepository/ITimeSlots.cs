@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace infrastructures.Repository.IRepository
 {
-    interface IReview : IRepository<Review>
+    interface ITimeSlots : IRepository<TimeSlot>
     {
     }
 }

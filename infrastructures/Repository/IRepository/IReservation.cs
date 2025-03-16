@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace infrastructures.Repository.IRepository
 {
-    interface IReservation : IRepository<Reservation>
+    public interface IReservation : IRepository<Reservation>
     {
     }
 }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace infrastructures.Repository.IRepository
 {
-    interface IRestaurant : IRepository<Restaurant>
+     public interface IRestaurant : IRepository<Models.Models.Restaurant>
     {
     }
 }

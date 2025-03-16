@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace infrastructures.Repository.IRepository
 {
-    interface IMenuItem : IRepository<MenuItem>
+    public interface IMenuItem : IRepository<MenuItem>
     {
     }
 }

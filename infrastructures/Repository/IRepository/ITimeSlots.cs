@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace infrastructures.Repository.IRepository
 {
-    interface ITimeSlots : IRepository<TimeSlot>
+    public interface ITimeSlots : IRepository<Models.Models.TimeSlot>
     {
     }
 }

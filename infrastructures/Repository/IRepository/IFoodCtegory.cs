@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace infrastructures.Repository.IRepository
 {
-    interface IFoodCtegory : IRepository<FoodCategory>
+    public interface IFoodCtegory : IRepository<FoodCategory>
     {
     }
 }

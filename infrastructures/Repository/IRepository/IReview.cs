@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace infrastructures.Repository.IRepository
 {
-    interface IReview : IRepository<Review>
+    public interface IReview : IRepository<Models.Models.Review>
     {
     }
 }

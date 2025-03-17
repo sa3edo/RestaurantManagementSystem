@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace infrastructures.Repository
 {
-    class Review : Repository<Models.Models.Review> ,IReview
+    public class Review : Repository<Models.Models.Review> ,IReview
     {
         public Review(ApplicationDbContext dbContext) : base(dbContext)
         {

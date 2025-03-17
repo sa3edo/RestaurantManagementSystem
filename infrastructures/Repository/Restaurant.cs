@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace infrastructures.Repository
 {
-    class Restaurant : Repository<Models.Models.Restaurant>,IRestaurant
+    public class Restaurant : Repository<Models.Models.Restaurant>,IRestaurant
     {
         public Restaurant(ApplicationDbContext dbContext) : base(dbContext)
         {

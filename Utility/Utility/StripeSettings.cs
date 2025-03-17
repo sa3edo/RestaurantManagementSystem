@@ -1,4 +1,4 @@
-﻿namespace WebsitSellsLaptop.Utility
+﻿namespace RestaurantManagementSystem.Utility
 {
     public class StripeSettings
     {

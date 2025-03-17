@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace infrastructures.Repository
 {
-    class Order : Repository<Models.Models.Order> ,IOrder
+   public class Order : Repository<Models.Models.Order> ,IOrder
     {
         public Order(ApplicationDbContext dbContext) : base(dbContext)
         {

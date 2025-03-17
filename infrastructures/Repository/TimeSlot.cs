@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace infrastructures.Repository
 {
-    class TimeSlot : Repository<Models.Models.TimeSlot> , ITimeSlots
+    public class TimeSlot : Repository<Models.Models.TimeSlot> , ITimeSlots
     {
         public TimeSlot(ApplicationDbContext dbContext) : base(dbContext)
         {

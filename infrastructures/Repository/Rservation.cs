@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace infrastructures.Repository
 {
-    class Rservation : Repository<Reservation>,IReservation
+    public class Rservation : Repository<Reservation>,IReservation
     {
         public Rservation(ApplicationDbContext dbContext) : base(dbContext)
         {

@@ -1,4 +1,4 @@
-using infrastructures.Repository;
+﻿using infrastructures.Repository;
 using infrastructures.Repository.IRepository;
 using infrastructures.Services;
 using infrastructures.Services.IServices;
@@ -13,6 +13,7 @@ using Stripe;
 using TestRESTAPI.Extentions;
 using Utility.Profiles;
 using Utility.Email;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,7 +28,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(
     option => option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
     );
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-.AddEntityFrameworkStores<ApplicationDbContext>();
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();  // ✅ Registers default token providers
 builder.Services.AddScoped<IFoodCtegory, FoodCategory>();
 builder.Services.AddScoped<IMenuItem, MenuItem>();
 builder.Services.AddScoped<IOrder, Order>();
@@ -38,7 +40,7 @@ builder.Services.AddScoped<IReservation, infrastructures.Repository.Rservation>(
 builder.Services.AddScoped<ITimeSlots,TimeSlot>();
 builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
 builder.Services.AddScoped<IAccountService,infrastructures.Services.AccountService>();
-builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IEmailSender, EmailSender>();
 
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];

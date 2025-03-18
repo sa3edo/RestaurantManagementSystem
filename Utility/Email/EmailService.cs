@@ -1,34 +1,53 @@
-﻿using MailKit.Net.Smtp;
-using MimeKit;
+﻿using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Configuration;
+using System.Net;
+using System.Net.Mail;
 using System.Threading.Tasks;
-using Utility.Email;
 
-public class EmailService : IEmailService
+namespace infrastructures.Services
 {
-    private readonly IConfiguration _configuration;
-
-    public EmailService(IConfiguration configuration)
+    public class EmailSender : IEmailSender
     {
-        _configuration = configuration;
-    }
+        private readonly IConfiguration _configuration;
 
-    public async Task SendEmailAsync(string toEmail, string subject, string body)
-    {
-        var email = new MimeMessage();
-        email.From.Add(new MailboxAddress("Your App", _configuration["EmailSettings:SenderEmail"]));
-        email.To.Add(new MailboxAddress("", toEmail));
-        email.Subject = subject;
+        public EmailSender(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
 
-        email.Body = new TextPart("html") { Text = body };
+        public async Task SendEmailAsync(string email, string subject, string htmlMessage)
+        {
+            try
+            {
+                var smtpServer = _configuration["EmailSettings:SmtpServer"];
+                var port = int.Parse(_configuration["EmailSettings:Port"]);
+                var senderEmail = _configuration["EmailSettings:SenderEmail"];
+                var senderPassword = _configuration["EmailSettings:SenderPassword"];
 
-        using var smtp = new SmtpClient();
-        await smtp.ConnectAsync(_configuration["EmailSettings:SmtpServer"],
-                                int.Parse(_configuration["EmailSettings:Port"]),
-                                false);
-        await smtp.AuthenticateAsync(_configuration["EmailSettings:SenderEmail"],
-                                     _configuration["EmailSettings:SenderPassword"]);
-        await smtp.SendAsync(email);
-        await smtp.DisconnectAsync(true);
+                using (var client = new SmtpClient(smtpServer, port))
+                {
+                    client.Credentials = new NetworkCredential(senderEmail, senderPassword);
+                    client.EnableSsl = true;
+
+                    var mailMessage = new MailMessage
+                    {
+                        From = new MailAddress(senderEmail),
+                        Subject = subject,
+                        Body = htmlMessage,
+                        IsBodyHtml = true
+                    };
+
+                    mailMessage.To.Add(email);
+                    await client.SendMailAsync(mailMessage);
+                }
+
+                Console.WriteLine("Email sent to: " + email);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error sending email: " + ex.Message);
+            }
+        }
+
     }
 }

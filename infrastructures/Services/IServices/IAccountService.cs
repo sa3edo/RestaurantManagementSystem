@@ -11,5 +11,6 @@ namespace infrastructures.Services.IServices
     {
         Task<object> RegisterAsync(ApplicationUserDto userDto);
         Task<object> LoginAsync(LoginDto userVm);
+        Task<bool> ConfirmEmailAsync(string userId, string token);
     }
 }

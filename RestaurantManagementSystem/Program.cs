@@ -12,6 +12,7 @@ using RestaurantManagementSystem.Utility;
 using Stripe;
 using TestRESTAPI.Extentions;
 using Utility.Profiles;
+using Utility.Email;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,10 +38,23 @@ builder.Services.AddScoped<IReservation, infrastructures.Repository.Rservation>(
 builder.Services.AddScoped<ITimeSlots,TimeSlot>();
 builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
 builder.Services.AddScoped<IAccountService,infrastructures.Services.AccountService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 builder.Services.AddCustomJwtAuth(builder.Configuration);
+
+// Load appsettings.json and override with appsettings.Development.json in development mode
+builder.Configuration.AddEnvironmentVariables();
+
+var emailSettings = new
+{
+    SmtpServer = builder.Configuration["EmailSettings:SmtpServer"],
+    Port = builder.Configuration["EmailSettings:Port"],
+    SenderEmail = builder.Configuration["EmailSettings:SenderEmail"],
+    SenderPassword = builder.Configuration["EmailSettings:SenderPassword"]
+};
+
 var app = builder.Build();
 app.UseCors("AllowLocalhost");
 app.UseStaticFiles();

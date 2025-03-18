@@ -29,5 +29,15 @@ namespace RestaurantManagementSystem.Controllers
             var result = await _accountService.LoginAsync(userVm);
             return Ok(result);
         }
+        [HttpGet("ConfirmEmail")]
+        public async Task<IActionResult> ConfirmEmail(string userId, string token)
+        {
+            var result = await _accountService.ConfirmEmailAsync(userId, token);
+            if (result)
+                return Ok(new { Message = "Email confirmed successfully!" });
+
+            return BadRequest(new { Message = "Invalid token or user." });
+        }
+
     }
 }

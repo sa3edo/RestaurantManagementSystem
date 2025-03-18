@@ -13,6 +13,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using RestaurantManagementSystem.Utility;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace infrastructures.Services
 {
@@ -22,17 +23,20 @@ namespace infrastructures.Services
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
+        private readonly IEmailSender _emailSender;
 
         public AccountService(
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
             IMapper mapper,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IEmailSender emailSender)  // Inject Email Sender
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _mapper = mapper;
             _configuration = configuration;
+            _emailSender = emailSender;
         }
 
         public async Task<object> RegisterAsync(ApplicationUserDto userDto)
@@ -45,6 +49,7 @@ namespace infrastructures.Services
             }
 
             var user = _mapper.Map<ApplicationUser>(userDto);
+            user.EmailConfirmed = false; // Require email confirmation
             var result = await _userManager.CreateAsync(user, userDto.Passwords);
 
             if (result.Succeeded)
@@ -58,10 +63,27 @@ namespace infrastructures.Services
                 }
                 await _userManager.AddToRoleAsync(user, role);
 
-                return new { Message = "Registration successful" };
+                // Generate Email Confirmation Token
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                var confirmationLink = $"{_configuration["FrontendUrl"]}/verify-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
+
+                // Send Email
+                await _emailSender.SendEmailAsync(user.Email, "Email Confirmation", $"Click here to verify your email: <a href='{confirmationLink}'>Verify Email</a>");
+
+                return new { Message = "Registration successful. Please check your email to verify your account." };
             }
 
             return new { Errors = result.Errors.Select(e => e.Description) };
+        }
+
+        public async Task<bool> ConfirmEmailAsync(string userId, string token)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return false;
+
+            var result = await _userManager.ConfirmEmailAsync(user, token);
+            return result.Succeeded;
         }
 
         public async Task<object> LoginAsync(LoginDto userVm)

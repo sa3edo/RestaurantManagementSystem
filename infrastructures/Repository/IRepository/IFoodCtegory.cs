@@ -8,7 +8,8 @@ using System.Threading.Tasks;
 
 namespace infrastructures.Repository.IRepository
 {
-    public interface IFoodCtegory : IRepository<FoodCategory>
+    public interface IFoodCtegory : IRepository<Models.Models.FoodCategory>
     {
+       
     }
 }

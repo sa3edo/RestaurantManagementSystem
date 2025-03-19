@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace infrastructures.Repository.IRepository
 {
-    public interface IOrderItem : IRepository<OrderItem>
+    public interface IOrderItem : IRepository<Models.Models.OrderItem>
     {
     }
 }

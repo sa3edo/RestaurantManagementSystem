@@ -11,6 +11,8 @@
 	  <PackageReference Include="MailKit" Version="4.11.0" />
 	  <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.12" />
 	  <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.3.0" />
+	  <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.3" />
+	  <PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.2.0" />
 	  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
 	  <PackageReference Include="EPPlus" Version="7.5.1" />
 	  <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.11" />

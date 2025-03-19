@@ -14,6 +14,7 @@ using TestRESTAPI.Extentions;
 using Utility.Profiles;
 using Utility.Email;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Utility.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,7 +42,8 @@ builder.Services.AddScoped<ITimeSlots,TimeSlot>();
 builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
 builder.Services.AddScoped<IAccountService,infrastructures.Services.AccountService>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
-
+builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddSignalR();
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 builder.Services.AddCustomJwtAuth(builder.Configuration);
@@ -58,6 +60,7 @@ var emailSettings = new
 };
 
 var app = builder.Build();
+app.MapHub<AdminHub>("/adminHub");
 app.UseCors("AllowLocalhost");
 app.UseStaticFiles();
 //app.UseStaticFiles(new StaticFileOptions

@@ -9,7 +9,7 @@ using RestaurantManagementSystem.Repository;
 
 namespace infrastructures.Repository
 {
-     public class FoodCategory : Repository<FoodCategory>,IFoodCtegory
+     public class FoodCategory : Repository<Models.Models.FoodCategory>,IFoodCtegory
     {
         public FoodCategory(ApplicationDbContext dbContext) : base(dbContext)
         {

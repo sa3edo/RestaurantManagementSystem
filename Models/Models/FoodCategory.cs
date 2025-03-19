@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AutoMapper.Configuration.Annotations;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace Models.Models
         [Key]
         public int CategoryID { get; set; }
         public string Name { get; set; } = string.Empty;
-
+        [Ignore]
         public ICollection<MenuItem>? MenuItems { get; set; }
     }
 

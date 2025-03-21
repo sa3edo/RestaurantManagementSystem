@@ -2,7 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Models.Models;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Utility.SignalR;
 
 namespace RestaurantManagementSystem.Controllers
@@ -11,185 +14,214 @@ namespace RestaurantManagementSystem.Controllers
     [ApiController]
     public class AdminController : ControllerBase
     {
-        private readonly IAdminService _adminService;
+        private readonly IFoodCategoryService foodCategoryService;
+        private readonly IRestaurantService restaurantService;
+        private readonly IOrderService orderService;
         private readonly IHubContext<AdminHub> _hubContext;
 
-        public AdminController(IAdminService adminService, IHubContext<AdminHub> hubContext)
+        public AdminController(IFoodCategoryService foodCategoryService, IRestaurantService restaurantService, IOrderService orderService, IHubContext<AdminHub> hubContext)
         {
-            _adminService = adminService;
+            this.foodCategoryService = foodCategoryService;
+            this.restaurantService = restaurantService;
+            this.orderService = orderService;
             _hubContext = hubContext;
         }
 
         // ------------------------ Restaurant Management ------------------------
 
-        // Get all restaurants
         [HttpGet("GetAllRestaurants")]
         public IActionResult GetAllRestaurants([FromQuery] int page = 1, [FromQuery] string searchQuery = "")
         {
-            int pageSize = 10;
-            var restaurants = _adminService.GetAllRestaurants();
-
-            
-            if (!string.IsNullOrEmpty(searchQuery))
+            try
             {
-                restaurants = restaurants.Where(r => r.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
-                                                     r.Location.Contains(searchQuery, StringComparison.OrdinalIgnoreCase));
+                int pageSize = 10;
+                var restaurants = restaurantService.GetAllRestaurants();
+
+                if (!string.IsNullOrEmpty(searchQuery))
+                {
+                    restaurants = restaurants.Where(r => r.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                                                         r.Location.Contains(searchQuery, StringComparison.OrdinalIgnoreCase));
+                }
+
+                int totalCount = restaurants.Count();
+                var paginatedRestaurants = restaurants.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                return Ok(new { TotalCount = totalCount, Page = page, PageSize = pageSize, Data = paginatedRestaurants });
             }
-            int totalCount = restaurants.Count();
-
-            var paginatedRestaurants = restaurants.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-            
-            var response = new
+            catch (Exception ex)
             {
-                TotalCount = totalCount,
-                Page = page,
-                PageSize = pageSize,
-                Data = paginatedRestaurants
-            };
-
-            return Ok(response);
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
         }
 
         [HttpPost("CreateRestaurant")]
         public async Task<IActionResult> CreateRestaurant([FromBody] Restaurant restaurant)
         {
-            if (restaurant == null) return BadRequest("Invalid restaurant data.");
+            try
+            {
+                if (restaurant == null) return BadRequest("Invalid restaurant data.");
 
-            _adminService.CreateRestaurant(restaurant);
-            await _hubContext.Clients.All.SendAsync("ReceiveUpdate", "RestaurantAdded", restaurant);
+                restaurantService.CreateRestaurant(restaurant);
+                await _hubContext.Clients.All.SendAsync("ReceiveUpdate", "RestaurantAdded", restaurant);
 
-            return CreatedAtAction(nameof(GetAllRestaurants), new { id = restaurant.RestaurantID }, restaurant);
+                return CreatedAtAction(nameof(GetAllRestaurants), new { id = restaurant.RestaurantID }, restaurant);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
         }
 
-
-        // Update a restaurant
         [HttpPut("UpdateRestaurant/{restaurantId}")]
         public async Task<IActionResult> UpdateRestaurant(int restaurantId, [FromBody] Restaurant restaurant)
         {
-            if (restaurant == null || restaurant.RestaurantID != restaurantId)
-                return BadRequest("Invalid restaurant ID.");
+            try
+            {
+                if (restaurant == null || restaurant.RestaurantID != restaurantId)
+                    return BadRequest("Invalid restaurant ID.");
 
-            _adminService.UpdateRestaurant(restaurant);
-            await _hubContext.Clients.All.SendAsync("ReceiveUpdate", "RestaurantUpdated", restaurant);
+                restaurantService.UpdateRestaurant(restaurant);
+                await _hubContext.Clients.All.SendAsync("ReceiveUpdate", "RestaurantUpdated", restaurant);
 
-            return NoContent();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
         }
 
-
-        // Delete a restaurant
         [HttpDelete("DeleteRestaurant/{restaurantId}")]
         public async Task<IActionResult> DeleteRestaurant(int restaurantId)
         {
-            _adminService.DeleteRestaurant(restaurantId);
-            await _hubContext.Clients.All.SendAsync("ReceiveUpdate", "RestaurantDeleted", restaurantId);
+            try
+            {
+                restaurantService.DeleteRestaurant(restaurantId);
+                await _hubContext.Clients.All.SendAsync("ReceiveUpdate", "RestaurantDeleted", restaurantId);
 
-            return NoContent();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
         }
 
-
-        // Approve a restaurant
         [HttpPut("ApproveRestaurant/{restaurantId}/approve")]
         public IActionResult ApproveRestaurant(int restaurantId)
         {
-            var restaurant = _adminService.GetAllRestaurants();
-            if (restaurant == null) return NotFound("Restaurant not found.");
-
-            _adminService.ApproveRestaurant(restaurantId);
-            return Ok("Restaurant approved.");
+            try
+            {
+                restaurantService.ApproveRestaurant(restaurantId);
+                return Ok("Restaurant approved.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
         }
 
-        // Reject a restaurant
         [HttpPut("RejectRestaurant/{restaurantId}/reject")]
         public IActionResult RejectRestaurant(int restaurantId)
         {
-            var restaurant = _adminService.GetAllRestaurants();
-            if (restaurant == null) return NotFound("Restaurant not found.");
-
-            _adminService.RejectRestaurant(restaurantId);
-            return Ok("Restaurant rejected.");
+            try
+            {
+                restaurantService.RejectRestaurant(restaurantId);
+                return Ok("Restaurant rejected.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
         }
 
         // ------------------------ Food Category Management ------------------------
 
-        // Get all food categories
         [HttpGet("GetAllFoodCategories")]
         public IActionResult GetAllFoodCategories([FromQuery] int page = 1, [FromQuery] string searchQuery = "")
         {
-            int pageSize = 10;
-            var categories = _adminService.GetAllFoodCategories();
-
-            // Apply Search Filter
-            if (!string.IsNullOrEmpty(searchQuery))
+            try
             {
-                categories = categories.Where(c => c.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase));
+                int pageSize = 10;
+                var categories = foodCategoryService.GetAllFoodCategories();
+
+                if (!string.IsNullOrEmpty(searchQuery))
+                {
+                    categories = categories.Where(c => c.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase));
+                }
+
+                int totalCount = categories.Count();
+                var paginatedCategories = categories.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                return Ok(new { TotalCount = totalCount, Page = page, PageSize = pageSize, Data = paginatedCategories });
             }
-
-            // Get Total Count After Filtering
-            int totalCount = categories.Count();
-
-            // Apply Pagination
-            var paginatedCategories = categories.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-            var response = new
+            catch (Exception ex)
             {
-                TotalCount = totalCount,
-                Page = page,
-                PageSize = pageSize,
-                Data = paginatedCategories
-            };
-
-            return Ok(response);
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
         }
 
-
-        // Add a new food category
         [HttpPost("AddFoodCategory")]
         public IActionResult AddFoodCategory([FromBody] FoodCategory category)
         {
-            if (category == null) return BadRequest("Invalid category data.");
+            try
+            {
+                if (category == null) return BadRequest("Invalid category data.");
 
-            _adminService.AddFoodCategory(category);
-            return CreatedAtAction(nameof(GetAllFoodCategories), new { id = category.CategoryID }, category);
+                foodCategoryService.AddFoodCategory(category);
+                return CreatedAtAction(nameof(GetAllFoodCategories), new { id = category.CategoryID }, category);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
         }
 
-        // Update a food category
         [HttpPut("UpdateFoodCategory/{categoryId}")]
         public IActionResult UpdateFoodCategory(int categoryId, [FromBody] FoodCategory category)
         {
-            if (category == null || category.CategoryID != categoryId)
-                return BadRequest("Invalid category ID.");
+            try
+            {
+                if (category == null || category.CategoryID != categoryId)
+                    return BadRequest("Invalid category ID.");
 
-            _adminService.UpdateFoodCategory(category);
-            return NoContent();
+                foodCategoryService.UpdateFoodCategory(category);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
         }
 
-        // Delete a food category
         [HttpDelete("DeleteFoodCategory/{categoryId}")]
         public IActionResult DeleteFoodCategory(int categoryId)
         {
-            _adminService.DeleteFoodCategory(categoryId);
-            return NoContent();
+            try
+            {
+                foodCategoryService.DeleteFoodCategory(categoryId);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
         }
 
         // ------------------------ Order Monitoring ------------------------
 
-        // Monitor orders
         [HttpGet("MonitorOrders/monitor")]
         public IActionResult MonitorOrders()
         {
-            _adminService.MonitorOrders();
-            return Ok("Orders monitored. Check logs for details.");
+            try
+            {
+                orderService.MonitorOrders();
+                return Ok("Orders monitored. Check logs for details.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
         }
-
-        // ------------------------ Customer Support (Future Scope) ------------------------
-
-        // Handle customer support request
-        //[HttpPut("support/{requestId}/resolve")]
-        //public IActionResult HandleCustomerSupport(int requestId)
-        //{
-        //    _adminService.HandleCustomerSupport(requestId);
-        //    return Ok("Customer support request resolved.");
-        //}
     }
 }

@@ -1,23 +1,19 @@
-﻿
-using Models.Models;
+﻿using Models.Models;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace infrastructures.Services.IServices
 {
-    public interface IAdminService
+    public interface IRestaurantService
     {
         IEnumerable<Restaurant> GetAllRestaurants();
         void ApproveRestaurant(int restaurantId);
         void RejectRestaurant(int restaurantId);
-        IEnumerable<Models.Models.FoodCategory> GetAllFoodCategories();
-        void AddFoodCategory(FoodCategory category);
-        void UpdateFoodCategory(FoodCategory category);
-        void DeleteFoodCategory(int categoryId);
-        void MonitorOrders();
         void CreateRestaurant(Restaurant restaurant);
         void UpdateRestaurant(Restaurant restaurant);
         void DeleteRestaurant(int restaurantId);
-        //void HandleCustomerSupport(int requestId);
-        
     }
 }

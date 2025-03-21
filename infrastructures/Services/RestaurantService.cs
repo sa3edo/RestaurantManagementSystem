@@ -1,22 +1,22 @@
-﻿using infrastructures.Repository;
-using infrastructures.Services.IServices;
+﻿using infrastructures.Services.IServices;
 using infrastructures.UnitOfWork;
 using Models.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace infrastructures.Services
 {
-    public class AdminService : IAdminService
+    public class RestaurantService : IRestaurantService
     {
         private readonly IUnitOfWork _unitOfWork;
 
-        public AdminService(IUnitOfWork unitOfWork)
+        public RestaurantService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
-        // ------------------------ Restaurant Management ------------------------
 
         public IEnumerable<Models.Models.Restaurant> GetAllRestaurants()
         {
@@ -73,50 +73,5 @@ namespace infrastructures.Services
             }
         }
 
-        // ------------------------ Food Category Management ------------------------
-
-        public IEnumerable<Models.Models.FoodCategory> GetAllFoodCategories()
-        {
-            return _unitOfWork.foodCategory.Get();
-        }
-
-        public void AddFoodCategory(Models.Models.FoodCategory category)
-        {
-            if (category != null)
-            {
-                _unitOfWork.foodCategory.Create(category);
-                _unitOfWork.Complete();
-            }
-        }
-
-        public void UpdateFoodCategory(Models.Models.FoodCategory category)
-        {
-            if (category != null)
-            {
-                _unitOfWork.foodCategory.Edit(category);
-                _unitOfWork.Complete();
-            }
-        }
-
-        public void DeleteFoodCategory(int categoryId)
-        {
-            var category = _unitOfWork.foodCategory.GetOne(expression: c => c.CategoryID == categoryId);
-            if (category != null)
-            {
-                _unitOfWork.foodCategory.Delete(category);
-                _unitOfWork.Complete();
-            }
-        }
-
-        // ------------------------ Order Monitoring ------------------------
-
-        public void MonitorOrders()
-        {
-            var orders = _unitOfWork.order.Get();
-            foreach (var order in orders)
-            {
-                Console.WriteLine($"Order ID: {order.OrderID}, Status: {order.Status}");
-            }
-        }
     }
 }

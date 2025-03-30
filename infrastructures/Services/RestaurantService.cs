@@ -1,8 +1,10 @@
 ﻿using infrastructures.Services.IServices;
 using infrastructures.UnitOfWork;
+using Microsoft.AspNetCore.Http;
 using Models.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -11,67 +13,115 @@ namespace infrastructures.Services
     public class RestaurantService : IRestaurantService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly string _imageFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "RestImages");
 
         public RestaurantService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
-
-        public IEnumerable<Models.Models.Restaurant> GetAllRestaurants()
+        public async Task<IEnumerable<Restaurant>> GetAllRestaurantsAsync(string userId = " ")
         {
-            return _unitOfWork.restaurant.Get();
+            return !string.IsNullOrWhiteSpace(userId)
+                ? await _unitOfWork.restaurant.GetAsync(expression: e => e.ManagerID == userId)
+                : await _unitOfWork.restaurant.GetAsync();
         }
 
-        public void CreateRestaurant(Models.Models.Restaurant restaurant)
+        public async Task<Restaurant?> GetRestaurantByIdAsync(int restaurantId) =>
+            await _unitOfWork.restaurant.GetOneAsync(expression: r => r.RestaurantID == restaurantId);
+
+        public async Task<Restaurant> CreateRestaurantAsync(Restaurant restaurant, IFormFile? restImgs)
         {
-            if (restaurant != null)
+            restaurant.ImgUrl = await SaveImageAsync(restImgs);
+            await _unitOfWork.restaurant.CreateAsync(restaurant);
+            await _unitOfWork.CompleteAsync();
+            return restaurant;
+        }
+
+        public async Task<Restaurant?> UpdateRestaurantAsync(int restaurantId, Restaurant restaurant, IFormFile? restImgs)
+        {
+            var existingRestaurant = await _unitOfWork.restaurant.GetOneAsync(expression: e => e.RestaurantID == restaurantId);
+            if (existingRestaurant == null) return null;
+
+            if (restImgs != null && restImgs.Length > 0)
             {
-                _unitOfWork.restaurant.Create(restaurant);
-                _unitOfWork.Complete();
+                await DeleteImage(existingRestaurant.ImgUrl);
+                existingRestaurant.ImgUrl = await SaveImageAsync(restImgs);
+            }
+
+            existingRestaurant.Name = restaurant.Name;
+            existingRestaurant.Description = restaurant.Description;
+            existingRestaurant.Location = restaurant.Location;
+
+            _unitOfWork.restaurant.Edit(existingRestaurant);
+            await _unitOfWork.CompleteAsync();
+            return existingRestaurant;
+        }
+
+        public async Task<bool> DeleteRestaurantAsync(int restaurantId)
+        {
+            var restaurant = await _unitOfWork.restaurant.GetOneAsync(expression: r => r.RestaurantID == restaurantId);
+            if (restaurant == null) return false;
+
+            await DeleteImage(restaurant.ImgUrl);
+            _unitOfWork.restaurant.Delete(restaurant);
+            await _unitOfWork.CompleteAsync();
+            return true;
+        }
+
+        public async Task<Restaurant?> ApproveRestaurantAsync(int restaurantId)
+        {
+            return await ChangeRestaurantStatusAsync(restaurantId, RestaurantStatus.Approved);
+        }
+
+        public async Task<Restaurant?> RejectRestaurantAsync(int restaurantId)
+        {
+            return await ChangeRestaurantStatusAsync(restaurantId, RestaurantStatus.Rejected);
+        }
+
+        private async Task<Restaurant?> ChangeRestaurantStatusAsync(int restaurantId, RestaurantStatus status)
+        {
+            var restaurant = await _unitOfWork.restaurant.GetOneAsync(expression: r => r.RestaurantID == restaurantId);
+            if (restaurant == null) return null;
+
+            restaurant.Status = status;
+            _unitOfWork.restaurant.Edit(restaurant);
+            await _unitOfWork.CompleteAsync();
+            return restaurant;
+        }
+
+        private async Task<string> SaveImageAsync(IFormFile? imageFile)
+        {
+            if (imageFile == null || imageFile.Length == 0) return string.Empty;
+
+            EnsureImageDirectoryExists();
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(imageFile.FileName)}";
+            var filePath = Path.Combine(_imageFolderPath, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await imageFile.CopyToAsync(stream);
+            }
+            return fileName;
+        }
+
+        private async Task DeleteImage(string? fileName)
+        {
+            if (string.IsNullOrEmpty(fileName)) return;
+
+            var filePath = Path.Combine(_imageFolderPath, fileName);
+            if (File.Exists(filePath))
+            {
+                await Task.Run(() => File.Delete(filePath));
             }
         }
 
-        public void UpdateRestaurant(Models.Models.Restaurant restaurant)
+        private void EnsureImageDirectoryExists()
         {
-            if (restaurant != null)
+            if (!Directory.Exists(_imageFolderPath))
             {
-                _unitOfWork.restaurant.Edit(restaurant);
-                _unitOfWork.Complete();
+                Directory.CreateDirectory(_imageFolderPath);
             }
         }
-
-        public void DeleteRestaurant(int restaurantId)
-        {
-            var restaurant = _unitOfWork.restaurant.GetOne(expression: r => r.RestaurantID == restaurantId);
-            if (restaurant != null)
-            {
-                _unitOfWork.restaurant.Delete(restaurant);
-                _unitOfWork.Complete();
-            }
-        }
-
-        public void ApproveRestaurant(int restaurantId)
-        {
-            var restaurant = _unitOfWork.restaurant.GetOne(expression: r => r.RestaurantID == restaurantId);
-            if (restaurant != null && restaurant.Status == RestaurantStatus.Pending)
-            {
-                restaurant.Status = RestaurantStatus.Approved;
-                _unitOfWork.restaurant.Edit(restaurant);
-                _unitOfWork.Complete();
-            }
-        }
-
-        public void RejectRestaurant(int restaurantId)
-        {
-            var restaurant = _unitOfWork.restaurant.GetOne(expression: r => r.RestaurantID == restaurantId);
-            if (restaurant != null && restaurant.Status == RestaurantStatus.Pending)
-            {
-                restaurant.Status = RestaurantStatus.Rejected;
-                _unitOfWork.restaurant.Edit(restaurant);
-                _unitOfWork.Complete();
-            }
-        }
-
     }
 }

@@ -9,9 +9,11 @@ namespace infrastructures.Services.IServices
 {
     public interface IFoodCategoryService
     {
-        IEnumerable<FoodCategory> GetAllFoodCategories();
-        void AddFoodCategory(FoodCategory category);
-        void UpdateFoodCategory(FoodCategory category);
-        void DeleteFoodCategory(int categoryId);
+        Task<IEnumerable<FoodCategory>> GetAllCategoriesAsync();
+        Task<FoodCategory?> GetCategoryByIdAsync(int categoryId);
+        Task<FoodCategory> CreateCategoryAsync(FoodCategory category);
+        Task<FoodCategory?> UpdateCategoryAsync(int categoryId, FoodCategory category);
+        Task<bool> DeleteCategoryAsync(int categoryId);
     }
+
 }

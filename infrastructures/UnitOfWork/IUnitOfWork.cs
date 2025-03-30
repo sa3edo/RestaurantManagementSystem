@@ -18,6 +18,9 @@ namespace infrastructures.UnitOfWork
         public IRestaurant restaurant { get; }
         public IReview review { get; }
         public ITimeSlots timeSlots { get; }
+        public ITable table { get; }
+
+
 
         int Complete();
         Task CompleteAsync();

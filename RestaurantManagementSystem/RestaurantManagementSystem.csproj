@@ -38,4 +38,9 @@
     <ProjectReference Include="..\Utility\Utility.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="MenuImg\" />
+    <Folder Include="RestImg\" />
+  </ItemGroup>
+
 </Project>

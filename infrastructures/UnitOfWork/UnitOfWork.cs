@@ -22,6 +22,7 @@ namespace infrastructures.UnitOfWork
             restaurant = new Restaurant(_context);
             review = new Review(_context);
             timeSlots = new TimeSlot(_context);
+            table = new Table(_context);
         }
 
         public IFoodCtegory foodCategory { get; private set; }
@@ -32,6 +33,8 @@ namespace infrastructures.UnitOfWork
         public IRestaurant restaurant { get; private set; }
         public IReview review { get; private set; }
         public ITimeSlots timeSlots { get; private set; }
+        public ITable table { get; private set; }
+
 
         public int Complete() => _context.SaveChanges();
         public Task CompleteAsync() => _context.SaveChangesAsync();

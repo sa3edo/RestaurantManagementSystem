@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using RestaurantManagementSystem.Models;
 
 namespace Models.Models
@@ -15,17 +16,24 @@ namespace Models.Models
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public string Location { get; set; } = string.Empty;
-        public int ManagerID { get; set; }
+        public string ManagerID { get; set; }
+        public string? ImgUrl { get; set; }
         public ApplicationUser? User { get; set; } 
         public RestaurantStatus Status { get; set; } = RestaurantStatus.Pending;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-       
+        [ValidateNever]
         public ICollection<MenuItem>? MenuItems { get; set; }
+        [ValidateNever]
         public ICollection<Order>? Orders { get; set; }
+        [ValidateNever]
         public ICollection<Reservation>? Reservations { get; set; }
+        [ValidateNever]
         public ICollection<Review>? Reviews { get; set; }
+        [ValidateNever]
         public ICollection<TimeSlot>? TimeSlot { get; set; }
+        [ValidateNever]
+        public ICollection<Table>? Tables { get; set; }
     }
 
     public enum RestaurantStatus

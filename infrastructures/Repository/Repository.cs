@@ -1,33 +1,34 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
-using System.Linq;
-
 using RestaurantManagementSystem.Repository.IRepository;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace RestaurantManagementSystem.Repository
 {
-    public class Repository<T>  : IRepository<T> where T : class
-
+    public class Repository<T> : IRepository<T> where T : class
     {
-        private readonly ApplicationDbContext dbContext;
-        private DbSet<T> dbSet;
+        private readonly ApplicationDbContext _dbContext;
+        private readonly DbSet<T> _dbSet;
 
         public Repository(ApplicationDbContext dbContext)
         {
-            this.dbContext = dbContext;
-            dbSet = dbContext.Set<T>();
+            _dbContext = dbContext;
+            _dbSet = dbContext.Set<T>();
         }
 
-        public void Commit()
+        public async Task CommitAsync()
         {
-            dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
         }
-        
-        public void Create(T entity)
+
+        public async Task CreateAsync(T entity)
         {
             try
             {
-                dbSet.Add(entity);
+                await _dbSet.AddAsync(entity);
             }
             catch (Exception ex)
             {
@@ -37,17 +38,17 @@ namespace RestaurantManagementSystem.Repository
 
         public void Delete(T entity)
         {
-            dbSet.Remove(entity);
+            _dbSet.Remove(entity);
         }
 
         public void Edit(T entity)
         {
-            dbSet.Update(entity);
+            _dbSet.Update(entity);
         }
 
-        public IEnumerable<T> Get(Expression<Func<T, object>>[]? includeProps = null, Expression<Func<T, bool>>? expression = null, bool tracked = true)
+        public async Task<IEnumerable<T>> GetAsync(Expression<Func<T, object>>[]? includeProps = null, Expression<Func<T, bool>>? expression = null, bool tracked = true)
         {
-            IQueryable<T> query = dbSet;
+            IQueryable<T> query = _dbSet;
 
             if (expression != null)
             {
@@ -67,15 +68,12 @@ namespace RestaurantManagementSystem.Repository
                 query = query.AsNoTracking();
             }
 
-            return query.ToList();
+            return await query.ToListAsync();
         }
 
-
-        public T? GetOne(Expression<Func<T, object>>[]? includeProps = null, Expression<Func<T, bool>>? expression = null, bool tracked = true)
+        public async Task<T?> GetOneAsync(Expression<Func<T, object>>[]? includeProps = null, Expression<Func<T, bool>>? expression = null, bool tracked = true)
         {
-            return Get(includeProps, expression, tracked).FirstOrDefault();
+            return (await GetAsync(includeProps, expression, tracked)).FirstOrDefault();
         }
-
     }
-
 }

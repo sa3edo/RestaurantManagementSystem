@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading.Tasks;
 using RestaurantManagementSystem.Utility;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace infrastructures.Services
 {
@@ -49,21 +50,19 @@ namespace infrastructures.Services
             }
 
             var user = _mapper.Map<ApplicationUser>(userDto);
-            user.EmailConfirmed = false; // Require email confirmation
+            user.EmailConfirmed = false;
             var result = await _userManager.CreateAsync(user, userDto.Passwords);
 
             if (result.Succeeded)
             {
-                bool isFirstUser = !_userManager.Users.Any();
-                string role = isFirstUser ? SD.adminRole : SD.CustomerRole;
-
-                if (!await _roleManager.RoleExistsAsync(role))
+               
+                if(_userManager.Users==null)
                 {
-                    await _roleManager.CreateAsync(new IdentityRole(role));
+                    await _userManager.AddToRoleAsync(user, SD.adminRole);
                 }
-                await _userManager.AddToRoleAsync(user, role);
+                else
+                    await _userManager.AddToRoleAsync(user, SD.CustomerRole);
 
-                // Generate Email Confirmation Token
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 var confirmationLink = $"{_configuration["FrontendUrl"]}/verify-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
 
@@ -88,19 +87,29 @@ namespace infrastructures.Services
 
         public async Task<object> LoginAsync(LoginDto userVm)
         {
-            var user = await _userManager.FindByNameAsync(userVm.UserName);
+            var user = await _userManager.FindByEmailAsync(userVm.Email);
             if (user == null || !await _userManager.CheckPasswordAsync(user, userVm.Password))
             {
                 return new { Message = "Invalid credentials" };
             }
 
-            var claims = new List<Claim>
+            if (!user.EmailConfirmed)
             {
-                new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
+                return new { Message = "Please verify your email before logging in.", StatusCode = 403 };
+            }
 
+            if (await _userManager.IsLockedOutAsync(user))
+            {
+                return new { Message = "Your account is locked. Please try again later or contact support.", StatusCode = 401 };
+            }
+
+            var claims = new List<Claim> {
+
+               new Claim(ClaimTypes.Name, user.UserName),
+              new Claim(ClaimTypes.NameIdentifier, user.Id),
+               new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+              };
+            
             var roles = await _userManager.GetRolesAsync(user);
             claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
@@ -121,5 +130,9 @@ namespace infrastructures.Services
                 expiration = token.ValidTo
             };
         }
+
+
+
+
     }
 }

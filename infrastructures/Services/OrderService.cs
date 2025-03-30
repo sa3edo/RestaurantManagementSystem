@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using infrastructures.Services.IServices;
 using infrastructures.UnitOfWork;
+using Models.Models;
+using RestaurantManagementSystem.Repository.IRepository;
+
 namespace infrastructures.Services
 {
     public class OrderService : IOrderService
@@ -13,15 +14,43 @@ namespace infrastructures.Services
 
         public OrderService(IUnitOfWork unitOfWork)
         {
-            this._unitOfWork = unitOfWork;
+            _unitOfWork = unitOfWork;
         }
-        public void MonitorOrders()
+
+        public async Task<IEnumerable<Order>> GetAllOrdersAsync(int RestaurantId) =>
+            await _unitOfWork.order.GetAsync(expression:e=>e.RestaurantID== RestaurantId);
+
+        public async Task<Order?> GetOrderByIdAsync(int orderId) =>
+            await _unitOfWork.order.GetOneAsync(expression: e => e.OrderID == orderId);
+
+        public async Task<Order> CreateOrderAsync(Order order)
         {
-            var orders = _unitOfWork.order.Get();
-            foreach (var order in orders)
-            {
-                Console.WriteLine($"Order ID: {order.OrderID}, Status: {order.Status}");
-            }
+            await _unitOfWork.order.CreateAsync(order);
+            await _unitOfWork.CompleteAsync(); // Save changes after adding
+            return order;
+        }
+
+        public async Task<Order?> UpdateOrderStatusAsync(int orderId, OrderStatus status)
+        {
+            var order = await _unitOfWork.order.GetOneAsync(expression: e => e.OrderID == orderId);
+            if (order == null) return null;
+
+            order.Status = status;
+            _unitOfWork.order.Edit(order);
+            await _unitOfWork.CompleteAsync(); // Save changes
+
+            return order;
+        }
+
+        public async Task<bool> CancelOrderAsync(int orderId)
+        {
+            var order = await _unitOfWork.order.GetOneAsync(expression: e => e.OrderID == orderId);
+            if (order == null || order.Status != OrderStatus.Pending) return false;
+
+            _unitOfWork.order.Delete(order);
+            await _unitOfWork.CompleteAsync(); // Save changes after deleting
+
+            return true;
         }
     }
 }

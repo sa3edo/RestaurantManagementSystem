@@ -28,6 +28,14 @@ builder.Services.AddAutoMapper(typeof(ApplicationUserProfile).Assembly);
 builder.Services.AddDbContext<ApplicationDbContext>(
     option => option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
     );
+
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers = true; 
+});
+
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();  // ✅ Registers default token providers
@@ -39,16 +47,23 @@ builder.Services.AddScoped<IRestaurant, Restaurant>();
 builder.Services.AddScoped<IReview,infrastructures.Repository.Review>();
 builder.Services.AddScoped<IReservation, infrastructures.Repository.Rservation>();
 builder.Services.AddScoped<ITimeSlots,TimeSlot>();
+builder.Services.AddScoped<ITable,Table>();
 builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
 builder.Services.AddScoped<IAccountService,infrastructures.Services.AccountService>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<IFoodCategoryService, FoodCategoryService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IRestaurantService, RestaurantService>();
+builder.Services.AddScoped<IReservationService, ReservationService>();
+builder.Services.AddScoped<IOrderItemService, OrderItemService>();
+builder.Services.AddScoped<IReviewService, infrastructures.Services.ReviewService>();
+builder.Services.AddScoped<ITimeSlotService, TimeSlotService>();
+builder.Services.AddScoped<ITableService, TableService>();
 builder.Services.AddSignalR();
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 builder.Services.AddCustomJwtAuth(builder.Configuration);
+builder.Services.AddHostedService<DataCleanupService>();
 
 // Load appsettings.json and override with appsettings.Development.json in development mode
 builder.Configuration.AddEnvironmentVariables();

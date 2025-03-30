@@ -2,6 +2,7 @@
 using infrastructures.Services.IServices;
 using infrastructures.UnitOfWork;
 using Models.Models;
+using RestaurantManagementSystem.Repository.IRepository;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,40 +17,42 @@ namespace infrastructures.Services
 
         public FoodCategoryService(IUnitOfWork unitOfWork)
         {
-            this._unitOfWork = unitOfWork;
-        }
-        public IEnumerable<Models.Models.FoodCategory> GetAllFoodCategories()
-        {
-            return _unitOfWork.foodCategory.Get();
+            _unitOfWork = unitOfWork;
         }
 
-        public void AddFoodCategory(Models.Models.FoodCategory category)
+        public async Task<IEnumerable<FoodCategory>> GetAllCategoriesAsync() =>
+            await _unitOfWork.foodCategory.GetAsync();
+
+        public async Task<FoodCategory?> GetCategoryByIdAsync(int categoryId) =>
+            await _unitOfWork.foodCategory.GetOneAsync(expression: c => c.CategoryID == categoryId);
+
+        public async Task<FoodCategory> CreateCategoryAsync(FoodCategory category)
         {
-            if (category != null)
-            {
-                _unitOfWork.foodCategory.Create(category);
-                _unitOfWork.Complete();
-            }
+            await _unitOfWork.foodCategory.CreateAsync(category);
+            await _unitOfWork.CompleteAsync();
+            return category;
         }
 
-        public void UpdateFoodCategory(Models.Models.FoodCategory category)
+        public async Task<FoodCategory?> UpdateCategoryAsync(int categoryId, FoodCategory category)
         {
-            if (category != null)
-            {
-                _unitOfWork.foodCategory.Edit(category);
-                _unitOfWork.Complete();
-            }
+            var existingCategory = await _unitOfWork.foodCategory.GetOneAsync(expression: c => c.CategoryID == categoryId);
+            if (existingCategory == null) return null;
+
+            existingCategory.Name = category.Name;
+            _unitOfWork.foodCategory.Edit(existingCategory);
+            await _unitOfWork.CompleteAsync();
+            return existingCategory;
         }
 
-        public void DeleteFoodCategory(int categoryId)
+        public async Task<bool> DeleteCategoryAsync(int categoryId)
         {
-            var category = _unitOfWork.foodCategory.GetOne(expression: c => c.CategoryID == categoryId);
-            if (category != null)
-            {
-                _unitOfWork.foodCategory.Delete(category);
-                _unitOfWork.Complete();
-            }
+            var category = await _unitOfWork.foodCategory.GetOneAsync(expression: c => c.CategoryID == categoryId);
+            if (category == null) return false;
+
+            _unitOfWork.foodCategory.Delete(category);
+            await _unitOfWork.CompleteAsync();
+            return true;
         }
-        
     }
+
 }

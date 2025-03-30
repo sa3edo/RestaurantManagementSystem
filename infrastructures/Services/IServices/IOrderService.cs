@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Models.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,11 @@ namespace infrastructures.Services.IServices
 {
     public interface IOrderService
     {
-        void MonitorOrders();
+        Task<IEnumerable<Order>> GetAllOrdersAsync(int RestaurantId);
+        Task<Order?> GetOrderByIdAsync(int orderId);
+        Task<Order> CreateOrderAsync(Order order);
+        Task<Order?> UpdateOrderStatusAsync(int orderId, OrderStatus status);
+        Task<bool> CancelOrderAsync(int orderId);
+        
     }
 }

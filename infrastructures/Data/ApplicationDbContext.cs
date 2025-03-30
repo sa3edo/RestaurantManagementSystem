@@ -16,6 +16,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     DbSet<Restaurant> Restaurants { get; set; }
     DbSet<Review> Reviews { get; set; }
     DbSet<TimeSlot> TimeSlots { get; set; }
+    DbSet<Table> Tables { get; set; }
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
        : base(options)
     {
@@ -24,11 +25,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(builder);
 
-        // Define Composite Key
-        builder.Entity<OrderItem>()
-            .HasKey(oi => new { oi.OrderID, oi.MenuItemID });
-
-        
+       
         builder.Entity<OrderItem>()
             .HasOne(oi => oi.Order)
             .WithMany(o => o.OrderItems)
@@ -68,6 +65,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .WithMany(r => r.TimeSlot)
             .HasForeignKey(ts => ts.RestaurantID)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<ApplicationUser>()
+         .HasIndex(u => u.UserName)
+         .IsUnique(false);
+
+        builder.Entity<IdentityUser>()
+        .HasIndex(u => u.Email)
+        .IsUnique(true);
+
     }
 
 }

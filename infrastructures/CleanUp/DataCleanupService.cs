@@ -5,6 +5,7 @@ using infrastructures.UnitOfWork;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Models.Models;
 
 public class DataCleanupService : BackgroundService
 {
@@ -25,18 +26,19 @@ public class DataCleanupService : BackgroundService
             {
                 var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
-                await CleanOldOrderItems(unitOfWork);  // NEW: Clean OrderItems older than 6 hours
+                await CleanOldOrderItems(unitOfWork);
                 await CleanOldOrders(unitOfWork);
                 await CleanOldReservations(unitOfWork);
+                await CleanPendingReservations(unitOfWork);  
             }
 
-            await Task.Delay(TimeSpan.FromHours(6), stoppingToken); // Runs every 6 hours
+            await Task.Delay(TimeSpan.FromHours(6), stoppingToken);
         }
     }
 
     private async Task CleanOldOrderItems(IUnitOfWork unitOfWork)
     {
-        var expirationDate = DateTime.UtcNow.AddHours(-6); // OrderItems older than 6 hours
+        var expirationDate = DateTime.UtcNow.AddHours(-6); 
 
         var oldOrderItems = await unitOfWork.orderItem.GetAsync(expression: oi => oi.CreatedAt < expirationDate);
         foreach (var item in oldOrderItems)
@@ -50,7 +52,7 @@ public class DataCleanupService : BackgroundService
 
     private async Task CleanOldOrders(IUnitOfWork unitOfWork)
     {
-        var expirationDate = DateTime.UtcNow.AddHours(-24); // Orders older than 24 hours
+        var expirationDate = DateTime.UtcNow.AddHours(-24);
 
         var oldOrders = await unitOfWork.order.GetAsync(expression: o => o.CreatedAt < expirationDate);
         foreach (var order in oldOrders)
@@ -69,7 +71,7 @@ public class DataCleanupService : BackgroundService
 
     private async Task CleanOldReservations(IUnitOfWork unitOfWork)
     {
-        var expirationDate = DateTime.UtcNow.AddDays(-2); // Reservations older than 2 days
+        var expirationDate = DateTime.UtcNow.AddDays(-2);
 
         var oldReservations = await unitOfWork.reservation.GetAsync(expression: r => r.ReservationDate < expirationDate);
         foreach (var reservation in oldReservations)
@@ -79,5 +81,19 @@ public class DataCleanupService : BackgroundService
 
         await unitOfWork.CompleteAsync();
         _logger.LogInformation("✅ Reservations older than 2 days have been deleted.");
+    }
+
+    private async Task CleanPendingReservations(IUnitOfWork unitOfWork)
+    {
+        var expirationDate = DateTime.UtcNow.AddHours(-24);
+
+        var pendingReservations = await unitOfWork.reservation.GetAsync(expression: r => r.Status == ReservationStatus.Pending && r.CreatedAt < expirationDate);
+        foreach (var reservation in pendingReservations)
+        {
+            unitOfWork.reservation.Delete(reservation);
+        }
+
+        await unitOfWork.CompleteAsync();
+        _logger.LogInformation("✅ Pending reservations older than 24 hours have been deleted.");
     }
 }

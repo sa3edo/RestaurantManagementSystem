@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System.Linq;
+using Models.DTO;
 
 namespace RestaurantManagementSystem.Controllers
 {
@@ -43,8 +45,13 @@ namespace RestaurantManagementSystem.Controllers
         {
             return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         }
+        [HttpGet("GetAllRestaurant")]
+        public async Task<ActionResult<IEnumerable<MenuItem>>> GetAllRestaurant()
+        {
+            var Rest = await _restaurantService.GetAllRestaurantsAsync();
+            return Ok(Rest);
+        }
 
-        // ✅ Get Menu by Restaurant
         [HttpGet("GetRestaurantMenu/{restaurantId}/menu")]
         public async Task<ActionResult<IEnumerable<MenuItem>>> GetRestaurantMenu(int restaurantId)
         {
@@ -52,16 +59,52 @@ namespace RestaurantManagementSystem.Controllers
             return Ok(menu);
         }
 
-        // ✅ Create Order
         [HttpPost("CreateOrder")]
-        public async Task<ActionResult<Order>> CreateOrder([FromBody] Order order)
+        public async Task<ActionResult<Order>> CreateOrder([FromBody] CreateOrderDto orderDto)
         {
-            order.UserID = GetUserId();
+            var userId = GetUserId();
+            var order = new Order
+            {
+                UserID = userId,
+                RestaurantID = orderDto.RestaurantId,
+                Status = OrderStatus.Pending,
+                CreatedAt = DateTime.UtcNow,
+                TotalAmount = 0
+            };
+
             var newOrder = await _orderService.CreateOrderAsync(order);
+
+            if (orderDto.Items != null && orderDto.Items.Any())
+            {
+                decimal totalAmount = 0;
+
+                foreach (var itemDto in orderDto.Items)
+                {
+                    var menuItem = await _menuItemService.GetMenuItemByIdAsync(itemDto.MenuItemId);
+                    if (menuItem == null)
+                    {
+                        continue;
+                    }
+
+                    var orderItem = new OrderItem
+                    {
+                        OrderID = newOrder.OrderID,
+                        MenuItemID = itemDto.MenuItemId,
+                        Quantity = itemDto.Quantity,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    await _orderItemService.CreateOrderItemAsync(orderItem);
+                    totalAmount += menuItem.Price * itemDto.Quantity;
+                }
+
+                newOrder.TotalAmount = totalAmount;
+                await _orderService.UpdateOrderAsync(newOrder);
+            }
+
             return CreatedAtAction(nameof(CreateOrder), new { id = newOrder.OrderID }, newOrder);
         }
 
-        // ✅ Get User Orders
         [HttpGet("orders")]
         public async Task<ActionResult<IEnumerable<Order>>> GetUserOrders()
         {
@@ -70,7 +113,6 @@ namespace RestaurantManagementSystem.Controllers
             return Ok(orders);
         }
 
-        // ✅ Cancel Order
         [HttpDelete("orders/{orderId}")]
         public async Task<IActionResult> CancelOrder(int orderId)
         {
@@ -80,7 +122,6 @@ namespace RestaurantManagementSystem.Controllers
             return NoContent();
         }
 
-        // ✅ Create Reservation
         [HttpPost("CreateReservation")]
         public async Task<ActionResult<Reservation>> BookTable([FromBody] Reservation reservation)
         {
@@ -89,7 +130,6 @@ namespace RestaurantManagementSystem.Controllers
             return CreatedAtAction(nameof(BookTable), new { id = newReservation.ReservationID }, newReservation);
         }
 
-        // ✅ Get User Reservations
         [HttpGet("reservations")]
         public async Task<ActionResult<IEnumerable<Reservation>>> GetUserReservations()
         {
@@ -98,7 +138,6 @@ namespace RestaurantManagementSystem.Controllers
             return Ok(reservations);
         }
 
-        // ✅ Cancel Reservation
         [HttpDelete("CancelReservation/{reservationId}")]
         public async Task<IActionResult> CancelReservation(int reservationId)
         {
@@ -108,7 +147,6 @@ namespace RestaurantManagementSystem.Controllers
             return NoContent();
         }
 
-        // ✅ Create Review
         [HttpPost("CreateReview")]
         public async Task<ActionResult<Review>> CreateReview([FromBody] Review review)
         {
@@ -117,38 +155,77 @@ namespace RestaurantManagementSystem.Controllers
             return CreatedAtAction(nameof(CreateReview), new { id = newReview.ReviewID }, newReview);
         }
 
-        // ✅ Get Categories
-        [HttpGet("restaurants/{restaurantId}/categories")]
-        public async Task<ActionResult<IEnumerable<FoodCategory>>> GetCategories(int restaurantId)
+        [HttpGet("GetCategories/{restaurantId}/categories")]
+        public async Task<ActionResult<IEnumerable<FoodCategory>>> GetCategories()
         {
             var categories = await _foodCategoryService.GetAllCategoriesAsync();
             return Ok(categories);
         }
 
-        // ✅ Create Order Item
-        [HttpPost("CreateOrderItem")]
-        public async Task<ActionResult<OrderItem>> CreateOrderItem([FromBody] OrderItem orderItem)
+        [HttpPost("AddItemToOrder/{orderId}/items")]
+        public async Task<ActionResult<OrderItem>> AddItemToOrder(int orderId, [FromBody] OrderItemDto itemDto)
         {
-            var newOrderItem = await _orderItemService.CreateOrderItemAsync(orderItem);
-            return CreatedAtAction(nameof(CreateOrderItem), new { id = newOrderItem.OrderItemId }, newOrderItem);
+            try
+            {
+                var userId = GetUserId();
+                var order = await _orderService.GetOrderByIdAsync(orderId);
+
+                if (order == null || order.UserID != userId)
+                    return NotFound("Order not found or doesn't belong to user");
+
+                if (order.Status != OrderStatus.Pending)
+                    return BadRequest("Order cannot be modified");
+
+                var result = await _orderItemService.AddItemToOrderAsync(orderId, itemDto);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
-        // ✅ Get Order Items by Order ID
-        [HttpGet("OrderItems/{orderId}")]
-        public async Task<ActionResult<IEnumerable<OrderItem>>> GetOrderItems(int orderId)
+        [HttpDelete("RemoveItemFromOrder/{orderId}/items/{menuItemId}")]
+        public async Task<IActionResult> RemoveItemFromOrder(int orderId, int menuItemId)
         {
-            var items = await _orderItemService.GetItemsByOrderAsync(orderId);
-            if (items == null) return NotFound("No order items found.");
-            return Ok(items);
-        }
+            var userId = GetUserId();
+            var order = await _orderService.GetOrderByIdAsync(orderId);
 
-        // ✅ Delete Order Item
-        [HttpDelete("OrderItem/{orderItemId}")]
-        public async Task<IActionResult> DeleteOrderItem(int orderItemId)
-        {
-            var result = await _orderItemService.DeleteOrderItemAsync(orderItemId);
-            if (!result) return NotFound("Order item not found.");
+            if (order == null || order.UserID != userId)
+                return NotFound("Order not found or doesn't belong to user");
+
+            if (order.Status != OrderStatus.Pending)
+                return BadRequest("Order cannot be modified");
+
+            var success = await _orderItemService.RemoveItemFromOrderAsync(orderId, menuItemId);
+            if (!success) return NotFound("Item not found in order");
+
             return NoContent();
+        }
+
+        [HttpPut("orders/{orderId}/items/{menuItemId}/quantity")]
+        public async Task<ActionResult<OrderItem>> UpdateItemQuantity(int orderId, int menuItemId, [FromBody] int newQuantity)
+        {
+            try
+            {
+                var userId = GetUserId();
+                var order = await _orderService.GetOrderByIdAsync(orderId);
+
+                if (order == null || order.UserID != userId)
+                    return NotFound("Order not found or doesn't belong to user");
+
+                if (order.Status != OrderStatus.Pending)
+                    return BadRequest("Order cannot be modified");
+
+                var result = await _orderItemService.UpdateItemQuantityAsync(orderId, menuItemId, newQuantity);
+                if (result == null) return NotFound("Item not found in order");
+
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

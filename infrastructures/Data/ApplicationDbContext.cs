@@ -4,10 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using Models.Models;
 using RestaurantManagementSystem.Models;
 using Stripe.Climate;
+using System.Reflection.Emit;
 
 
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {
+    
     DbSet<FoodCategory> FoodCategories { get; set; }
     DbSet<MenuItem> MenuItems { get; set; }
     DbSet<OrderItem> OrderItems { get; set; }
@@ -73,6 +75,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<IdentityUser>()
         .HasIndex(u => u.Email)
         .IsUnique(true);
+
 
     }
 

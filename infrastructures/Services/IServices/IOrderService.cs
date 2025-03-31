@@ -13,6 +13,7 @@ namespace infrastructures.Services.IServices
         Task<Order?> GetOrderByIdAsync(int orderId);
         Task<Order> CreateOrderAsync(Order order);
         Task<Order?> UpdateOrderStatusAsync(int orderId, OrderStatus status);
+        Task<Order?> UpdateOrderAsync(Order order);
         Task<bool> CancelOrderAsync(int orderId);
         
     }

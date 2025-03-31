@@ -30,6 +30,8 @@ namespace infrastructures.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -61,6 +63,31 @@ namespace infrastructures.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_FoodCategories", x => x.CategoryID);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "IdentityUser",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    UserName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    NormalizedUserName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Email = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    NormalizedEmail = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EmailConfirmed = table.Column<bool>(type: "bit", nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SecurityStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(type: "bit", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    LockoutEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    AccessFailedCount = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_IdentityUser", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -178,7 +205,8 @@ namespace infrastructures.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Location = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ManagerID = table.Column<int>(type: "int", nullable: false),
+                    ManagerID = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ImgUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     Status = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -204,6 +232,7 @@ namespace infrastructures.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    ImgUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Availability = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -282,6 +311,27 @@ namespace infrastructures.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Tables",
+                columns: table => new
+                {
+                    TableId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Seats = table.Column<int>(type: "int", nullable: false),
+                    IsAvailable = table.Column<bool>(type: "bit", nullable: false),
+                    RestaurantId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Tables", x => x.TableId);
+                    table.ForeignKey(
+                        name: "FK_Tables_Restaurants_RestaurantId",
+                        column: x => x.RestaurantId,
+                        principalTable: "Restaurants",
+                        principalColumn: "RestaurantID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "TimeSlots",
                 columns: table => new
                 {
@@ -307,13 +357,16 @@ namespace infrastructures.Migrations
                 name: "OrderItems",
                 columns: table => new
                 {
+                    OrderItemId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     OrderID = table.Column<int>(type: "int", nullable: false),
                     MenuItemID = table.Column<int>(type: "int", nullable: false),
-                    Quantity = table.Column<int>(type: "int", nullable: false)
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_OrderItems", x => new { x.OrderID, x.MenuItemID });
+                    table.PrimaryKey("PK_OrderItems", x => x.OrderItemId);
                     table.ForeignKey(
                         name: "FK_OrderItems_MenuItems_MenuItemID",
                         column: x => x.MenuItemID,
@@ -336,6 +389,9 @@ namespace infrastructures.Migrations
                     UserID = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     RestaurantID = table.Column<int>(type: "int", nullable: false),
                     TimeSlotID = table.Column<int>(type: "int", nullable: false),
+                    TableId = table.Column<int>(type: "int", nullable: false),
+                    ReservationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -351,6 +407,12 @@ namespace infrastructures.Migrations
                         column: x => x.RestaurantID,
                         principalTable: "Restaurants",
                         principalColumn: "RestaurantID");
+                    table.ForeignKey(
+                        name: "FK_Reservations_Tables_TableId",
+                        column: x => x.TableId,
+                        principalTable: "Tables",
+                        principalColumn: "TableId",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Reservations_TimeSlots_TimeSlotID",
                         column: x => x.TimeSlotID,
@@ -391,11 +453,23 @@ namespace infrastructures.Migrations
                 column: "NormalizedEmail");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_UserName",
+                table: "AspNetUsers",
+                column: "UserName");
+
+            migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IdentityUser_Email",
+                table: "IdentityUser",
+                column: "Email",
+                unique: true,
+                filter: "[Email] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MenuItems_CategoryID",
@@ -413,6 +487,11 @@ namespace infrastructures.Migrations
                 column: "MenuItemID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_OrderItems_OrderID",
+                table: "OrderItems",
+                column: "OrderID");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Orders_CustomerId",
                 table: "Orders",
                 column: "CustomerId");
@@ -426,6 +505,11 @@ namespace infrastructures.Migrations
                 name: "IX_Reservations_RestaurantID",
                 table: "Reservations",
                 column: "RestaurantID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reservations_TableId",
+                table: "Reservations",
+                column: "TableId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Reservations_TimeSlotID",
@@ -453,6 +537,11 @@ namespace infrastructures.Migrations
                 column: "RestaurantID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Tables_RestaurantId",
+                table: "Tables",
+                column: "RestaurantId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TimeSlots_RestaurantID",
                 table: "TimeSlots",
                 column: "RestaurantID");
@@ -477,6 +566,9 @@ namespace infrastructures.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "IdentityUser");
+
+            migrationBuilder.DropTable(
                 name: "OrderItems");
 
             migrationBuilder.DropTable(
@@ -493,6 +585,9 @@ namespace infrastructures.Migrations
 
             migrationBuilder.DropTable(
                 name: "Orders");
+
+            migrationBuilder.DropTable(
+                name: "Tables");
 
             migrationBuilder.DropTable(
                 name: "TimeSlots");

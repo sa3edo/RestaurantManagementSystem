@@ -24,12 +24,14 @@ namespace Models.Models
         public TimeSlot? TimeSlot { get; set; }
 
         public int TableId { get; set; }
+
         [ValidateNever]
-        public Table Table { get; set; }
+        public Table? Table { get; set; }
 
         [Required]
         public DateTime ReservationDate { get; set; }  // 🆕 Added Date Property
 
+        public DateTime CreatedAt { get; set; } = System.DateTime.UtcNow;
         public ReservationStatus Status { get; set; } = ReservationStatus.Pending;
     }
 

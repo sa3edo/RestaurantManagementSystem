@@ -339,6 +339,9 @@ namespace infrastructures.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReservationID"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("ReservationDate")
                         .HasColumnType("datetime2");
 

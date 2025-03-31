@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace infrastructures.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250330155444_Time")]
-    partial class Time
+    [Migration("20250331171809_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -248,6 +248,9 @@ namespace infrastructures.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ImgUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -339,6 +342,9 @@ namespace infrastructures.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReservationID"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("ReservationDate")
                         .HasColumnType("datetime2");
 
@@ -384,6 +390,9 @@ namespace infrastructures.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImgUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Location")

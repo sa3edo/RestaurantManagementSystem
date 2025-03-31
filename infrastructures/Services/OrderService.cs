@@ -41,7 +41,15 @@ namespace infrastructures.Services
 
             return order;
         }
+        public async Task<Order?> UpdateOrderAsync(Order order)
+        {
+            var existingOrder = await _unitOfWork.order.GetOneAsync(expression: e => e.OrderID == order.OrderID);
+            if (existingOrder == null) return null;
 
+            _unitOfWork.order.Edit(order);
+            await _unitOfWork.CompleteAsync();
+            return order;
+        }
         public async Task<bool> CancelOrderAsync(int orderId)
         {
             var order = await _unitOfWork.order.GetOneAsync(expression: e => e.OrderID == orderId);

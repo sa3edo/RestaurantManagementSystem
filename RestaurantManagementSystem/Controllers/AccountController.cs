@@ -81,5 +81,19 @@ namespace RestaurantManagementSystem.Controllers
 
             return Ok(new { Message = "Verification email sent successfully." });
         }
+        [HttpPost("test-email")]
+        public async Task<IActionResult> TestEmail()
+        {
+            try
+            {
+                await _emailSender.SendEmailAsync("recipient@example.com", "Test Email", "<h1>This is a test</h1>");
+                return Ok("Test email sent successfully");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error: {ex.Message}");
+            }
+        }
+
     }
 }

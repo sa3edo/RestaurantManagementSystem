@@ -71,7 +71,8 @@ public class DataCleanupService : BackgroundService
 
     private async Task CleanOldReservations(IUnitOfWork unitOfWork)
     {
-        var expirationDate = DateTime.UtcNow.AddDays(-2);
+        var expirationDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-2));
+
 
         var oldReservations = await unitOfWork.reservation.GetAsync(expression: r => r.ReservationDate < expirationDate);
         foreach (var reservation in oldReservations)

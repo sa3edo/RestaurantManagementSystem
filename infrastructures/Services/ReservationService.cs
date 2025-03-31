@@ -25,12 +25,28 @@ namespace infrastructures.Services
         public async Task<Reservation?> GetReservationByIdAsync(int reservationId) =>
             await _unitOfWork.reservation.GetOneAsync(expression: r => r.ReservationID == reservationId);
 
-        public async Task<Reservation> CreateReservationAsync(Reservation reservation)
+        public async Task<Reservation?> CreateReservationAsync(Reservation reservation)
         {
+            // Check if there's an existing reservation for the same restaurant, table, date, and time slot
+            var existingReservation = await _unitOfWork.reservation.GetOneAsync(expression: r =>
+                r.RestaurantID == reservation.RestaurantID &&
+                r.TableId == reservation.TableId &&  // Ensure the table is not double-booked
+               r.ReservationDate == reservation.ReservationDate &&
+               r.TimeSlotID == reservation.TimeSlotID // Same time slot
+            );
+
+            
+            if (existingReservation != null)
+            {
+                return null;
+            }
+
+            
             await _unitOfWork.reservation.CreateAsync(reservation);
             await _unitOfWork.CompleteAsync();
             return reservation;
         }
+
 
         public async Task<bool> CancelReservationAsync(int reservationId)
         {

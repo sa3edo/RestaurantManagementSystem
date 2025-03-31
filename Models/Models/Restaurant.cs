@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper.Configuration.Annotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using RestaurantManagementSystem.Models;
 
@@ -25,8 +26,10 @@ namespace Models.Models
         [ValidateNever]
         public ICollection<MenuItem>? MenuItems { get; set; }
         [ValidateNever]
+        [Ignore]
         public ICollection<Order>? Orders { get; set; }
         [ValidateNever]
+        [Ignore]
         public ICollection<Reservation>? Reservations { get; set; }
         [ValidateNever]
         public ICollection<Review>? Reviews { get; set; }

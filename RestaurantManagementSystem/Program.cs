@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using RestaurantManagementSystem.Models;
-using infrastructures.Services;
 using RestaurantManagementSystem.Utility;
 using Stripe;
 using TestRESTAPI.Extentions;
@@ -26,6 +25,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(ApplicationUserProfile).Assembly);
 builder.Services.AddDbContext<ApplicationDbContext>(
+   
     option => option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
     );
 
@@ -36,9 +36,13 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Lockout.AllowedForNewUsers = true; 
 });
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(option =>
+{
+    option.User.RequireUniqueEmail = true;
+    
+})
     .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();  // ✅ Registers default token providers
+    .AddDefaultTokenProviders();
 builder.Services.AddScoped<IFoodCtegory, FoodCategory>();
 builder.Services.AddScoped<IMenuItem, MenuItem>();
 builder.Services.AddScoped<IOrder, Order>();
@@ -81,12 +85,17 @@ var app = builder.Build();
 app.MapHub<AdminHub>("/adminHub");
 app.UseCors("AllowLocalhost");
 app.UseStaticFiles();
-//app.UseStaticFiles(new StaticFileOptions
-//{
-//    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "Images")),
-//    RequestPath = "/Images"
-//});
-// Configure the HTTP request pipeline.
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "RestImg")),
+    RequestPath = "/RestImg"
+});
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "MenuImg")),
+    RequestPath = "/MenuImg"
+});
+//Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

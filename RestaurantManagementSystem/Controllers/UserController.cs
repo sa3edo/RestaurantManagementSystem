@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using System.Linq;
 using Models.DTO;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
+using Utility.SignalR;
 
 namespace RestaurantManagementSystem.Controllers
 {
@@ -22,6 +25,7 @@ namespace RestaurantManagementSystem.Controllers
         private readonly IRestaurantService _restaurantService;
         private readonly IFoodCategoryService _foodCategoryService;
         private readonly IOrderItemService _orderItemService;
+        private readonly IHubContext<AdminHub> hubContext;
 
         public UserController(
             IMenuItemService menuItemService,
@@ -30,7 +34,8 @@ namespace RestaurantManagementSystem.Controllers
             IReviewService reviewService,
             IRestaurantService restaurantService,
             IFoodCategoryService foodCategoryService,
-            IOrderItemService orderItemService)
+            IOrderItemService orderItemService,
+            IHubContext<AdminHub> hubContext)
         {
             _menuItemService = menuItemService;
             _orderService = orderService;
@@ -39,6 +44,7 @@ namespace RestaurantManagementSystem.Controllers
             _restaurantService = restaurantService;
             _foodCategoryService = foodCategoryService;
             _orderItemService = orderItemService;
+            this.hubContext = hubContext;
         }
 
         private int GetUserId()
@@ -48,8 +54,22 @@ namespace RestaurantManagementSystem.Controllers
         [HttpGet("GetAllRestaurant")]
         public async Task<ActionResult<IEnumerable<MenuItem>>> GetAllRestaurant()
         {
-            var Rest = await _restaurantService.GetAllRestaurantsAsync();
-            return Ok(Rest);
+            try
+            {
+                
+                var restaurants = await _restaurantService.GetAllRestaurantsAsync();
+
+                if (restaurants == null || !restaurants.Any(r => r.Status == RestaurantStatus.Approved))
+                    return NotFound(new { Message = "No approved restaurant assigned to this manager." });
+
+                var approvedRestaurants = restaurants.Where(r => r.Status == RestaurantStatus.Approved);
+
+                return Ok(approvedRestaurants);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred while retrieving the restaurant.", Error = ex.Message });
+            }
         }
 
         [HttpGet("GetRestaurantMenu/{restaurantId}/menu")]
@@ -101,6 +121,7 @@ namespace RestaurantManagementSystem.Controllers
                 newOrder.TotalAmount = totalAmount;
                 await _orderService.UpdateOrderAsync(newOrder);
             }
+            await hubContext.Clients.All.SendAsync("ReceiveMessage", $"New order created by User {userId}");
 
             return CreatedAtAction(nameof(CreateOrder), new { id = newOrder.OrderID }, newOrder);
         }

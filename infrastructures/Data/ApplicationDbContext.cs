@@ -52,16 +52,16 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(r => r.Restaurant)
             .WithMany(rt => rt.Reservations)
             .HasForeignKey(r => r.RestaurantID)
-            .OnDelete(DeleteBehavior.NoAction); 
+            .OnDelete(DeleteBehavior.NoAction);
 
-        
+
         builder.Entity<Reservation>()
             .HasOne(r => r.TimeSlot)
             .WithMany(ts => ts.Reservations)
             .HasForeignKey(r => r.TimeSlotID)
-            .OnDelete(DeleteBehavior.NoAction);  
+            .OnDelete(DeleteBehavior.NoAction);
 
-       
+
         builder.Entity<TimeSlot>()
             .HasOne(ts => ts.Restaurant)
             .WithMany(r => r.TimeSlot)
@@ -76,6 +76,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         .HasIndex(u => u.Email)
         .IsUnique(true);
 
+        builder.Entity<IdentityUser>()
+       .HasIndex(u => u.NormalizedUserName)
+       .IsUnique(false);
 
     }
 

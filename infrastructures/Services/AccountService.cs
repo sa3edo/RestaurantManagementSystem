@@ -15,6 +15,8 @@ using System.Threading.Tasks;
 using RestaurantManagementSystem.Utility;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
+using System.Net.Mail;
+using System.Net;
 
 namespace infrastructures.Services
 {
@@ -50,7 +52,7 @@ namespace infrastructures.Services
             }
 
             var user = _mapper.Map<ApplicationUser>(userDto);
-            user.EmailConfirmed = false;
+            //user.EmailConfirmed = true;
             var result = await _userManager.CreateAsync(user, userDto.Passwords);
 
             if (result.Succeeded)
@@ -63,11 +65,11 @@ namespace infrastructures.Services
                 else
                     await _userManager.AddToRoleAsync(user, SD.CustomerRole);
 
-                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                var confirmationLink = $"{_configuration["FrontendUrl"]}/verify-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
+               // var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+               // var confirmationLink = $"{_configuration["FrontendUrl"]}/verify-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
 
-                // Send Email
-                await _emailSender.SendEmailAsync(user.Email, "Email Confirmation", $"Click here to verify your email: <a href='{confirmationLink}'>Verify Email</a>");
+                //Send Email
+               // await _emailSender.SendEmailAsync(user.Email, "Email Confirmation", $"Click here to verify your email: <a href='{confirmationLink}'>Verify Email</a>");
 
                 return new { Message = "Registration successful. Please check your email to verify your account." };
             }
@@ -93,10 +95,10 @@ namespace infrastructures.Services
                 return new { Message = "Invalid credentials" };
             }
 
-            if (!user.EmailConfirmed)
-            {
-                return new { Message = "Please verify your email before logging in.", StatusCode = 403 };
-            }
+            //if (!user.EmailConfirmed)
+            //{
+            //    return new { Message = "Please verify your email before logging in.", StatusCode = 403 };
+            //}
 
             if (await _userManager.IsLockedOutAsync(user))
             {
@@ -131,6 +133,39 @@ namespace infrastructures.Services
             };
         }
 
+        public async Task SendEmailAsync(string email, string subject, string htmlMessage)
+        {
+            try
+            {
+                var smtpServer = _configuration["EmailSettings:SmtpServer"];
+                var port = int.Parse(_configuration["EmailSettings:Port"]);
+                var senderEmail = _configuration["EmailSettings:SenderEmail"];
+                var senderPassword = _configuration["EmailSettings:SenderPassword"];
+
+                using (var client = new SmtpClient(smtpServer, port))
+                {
+                    client.Credentials = new NetworkCredential(senderEmail, senderPassword);
+                    client.EnableSsl = true;
+
+                    var mailMessage = new MailMessage
+                    {
+                        From = new MailAddress(senderEmail),
+                        Subject = subject,
+                        Body = htmlMessage,
+                        IsBodyHtml = true
+                    };
+
+                    mailMessage.To.Add(email);
+                    await client.SendMailAsync(mailMessage);
+                    Console.WriteLine($"Email successfully sent to {email}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending email: {ex.Message}");
+                throw;
+            }
+        }
 
 
 

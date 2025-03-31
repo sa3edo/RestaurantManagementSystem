@@ -251,7 +251,8 @@ public class RestaurantManagerController : ControllerBase
             var reservation = await _reservationService.ApproveReservationAsync(reservationId);
             if (reservation == null)
                 return NotFound(new { Message = "Reservation not found or already approved." });
-
+            await _hubContext.Clients.User(reservation.UserID)
+                    .SendAsync("ReceiveNotification", $"Your reservation {reservationId} has been Accept!");
             return Ok(new { Message = "Reservation accepted." });
         }
         catch (Exception ex)
@@ -268,7 +269,8 @@ public class RestaurantManagerController : ControllerBase
             var reservation = await _reservationService.RejectReservationAsync(reservationId);
             if (reservation == null)
                 return NotFound(new { Message = "Reservation not found or already rejected." });
-
+            await _hubContext.Clients.User(reservation.UserID)
+                    .SendAsync("ReceiveNotification", $"Your reservation {reservationId} has been REJECTED!");
             return Ok(new { Message = "Reservation rejected." });
         }
         catch (Exception ex)

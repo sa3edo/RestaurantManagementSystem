@@ -29,10 +29,10 @@ namespace Models.Models
         public Table? Table { get; set; }
 
         [Required]
-        public DateTime ReservationDate { get; set; }  // 🆕 Added Date Property
+        public DateOnly ReservationDate { get; set; }  // 🆕 Added Date Property
 
-        public DateTime CreatedAt { get; set; } = System.DateTime.UtcNow;
-        public ReservationStatus Status { get; set; } = ReservationStatus.Pending;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow; 
+       public ReservationStatus Status { get; set; } = ReservationStatus.Pending;
     }
 
     public enum ReservationStatus

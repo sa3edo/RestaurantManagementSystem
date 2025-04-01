@@ -24,10 +24,14 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(ApplicationUserProfile).Assembly);
-builder.Services.AddDbContext<ApplicationDbContext>(
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlServerOptions => sqlServerOptions.EnableRetryOnFailure())); // Retry on transient failures
+
+//builder.Services.AddDbContext<ApplicationDbContext>(
    
-    option => option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-    );
+//    option => option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+//    );
 
 builder.Services.Configure<IdentityOptions>(options =>
 {

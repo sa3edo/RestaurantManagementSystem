@@ -24,9 +24,11 @@ namespace infrastructures.Migrations
                 table: "IdentityUser",
                 type: "nvarchar(450)",
                 nullable: true,
+                
                 oldClrType: typeof(string),
                 oldType: "nvarchar(max)",
-                oldNullable: true);
+                oldNullable: true
+                );
 
             migrationBuilder.CreateIndex(
                 name: "IX_IdentityUser_NormalizedUserName",

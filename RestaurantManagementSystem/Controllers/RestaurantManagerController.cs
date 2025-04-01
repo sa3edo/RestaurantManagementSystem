@@ -52,7 +52,7 @@ public class RestaurantManagerController : ControllerBase
     // ------------------------ Restaurant Management ------------------------
 
     [HttpGet("GetRestaurant")]
-    public async Task<IActionResult> GetRestaurant()
+    public async Task<IActionResult> GetRestaurant([FromQuery] string? search, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
         try
         {
@@ -64,7 +64,24 @@ public class RestaurantManagerController : ControllerBase
 
             var approvedRestaurants = restaurants.Where(r => r.Status == RestaurantStatus.Approved);
 
-            return Ok(approvedRestaurants);
+            if (!string.IsNullOrEmpty(search))
+            {
+                approvedRestaurants = approvedRestaurants.Where(r => r.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
+            }
+
+            var totalRecords = approvedRestaurants.Count();
+            var pagedRestaurants = approvedRestaurants
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return Ok(new
+            {
+                TotalRecords = totalRecords,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                Restaurants = pagedRestaurants
+            });
         }
         catch (Exception ex)
         {
@@ -129,7 +146,7 @@ public class RestaurantManagerController : ControllerBase
     // ------------------------ Menu Management ------------------------
 
     [HttpGet("GetMenuItems")]
-    public async Task<IActionResult> GetMenuItems(int restaurantId)
+    public async Task<IActionResult> GetMenuItems(int restaurantId, string? search = null, int page = 1, int pageSize = 10)
     {
         try
         {
@@ -138,7 +155,15 @@ public class RestaurantManagerController : ControllerBase
                 return NotFound(new { Message = "Restaurant not found." });
 
             var menuItems = await _menuItemService.GetMenuItemsByRestaurantAsync(restaurant.RestaurantID);
-            return Ok(menuItems);
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                menuItems = menuItems.Where(m => m.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
+            }
+
+            var pagedMenuItems = menuItems.Skip((page - 1) * pageSize).Take(pageSize);
+
+            return Ok(new { TotalItems = menuItems.Count(), Page = page, PageSize = pageSize, Items = pagedMenuItems });
         }
         catch (Exception ex)
         {

@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 using System.Net.Mail;
 using System.Net;
+using Models.DTO;
 
 namespace infrastructures.Services
 {
@@ -52,24 +53,35 @@ namespace infrastructures.Services
             }
 
             var user = _mapper.Map<ApplicationUser>(userDto);
-            //user.EmailConfirmed = true;
+           // user.EmailConfirmed = false; // Important for email verification
             var result = await _userManager.CreateAsync(user, userDto.Passwords);
 
             if (result.Succeeded)
             {
-               
-                if(_userManager.Users==null)
+                if (_userManager.Users.Count() == 1) // First user is admin
                 {
                     await _userManager.AddToRoleAsync(user, SD.adminRole);
                 }
                 else
+                {
                     await _userManager.AddToRoleAsync(user, SD.CustomerRole);
+                }
 
-               // var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-               // var confirmationLink = $"{_configuration["FrontendUrl"]}/verify-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
+                // Generate email confirmation token
+                //var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                //var confirmationLink = $"{_configuration["FrontendUrl"]}/confirm-email?userId={user.Id}&token={WebUtility.UrlEncode(token)}";
 
-                //Send Email
-               // await _emailSender.SendEmailAsync(user.Email, "Email Confirmation", $"Click here to verify your email: <a href='{confirmationLink}'>Verify Email</a>");
+                // Email content
+        //        var emailSubject = "Confirm Your Email";
+        //        var emailBody = $@"
+        //    <h2>Welcome to Our Service!</h2>
+        //    <p>Please confirm your email by clicking the link below:</p>
+        //    <p><a href='{confirmationLink}'>Confirm Email</a></p>
+        //    <p>If you didn't request this, please ignore this email.</p>
+        //";
+
+        //        // Send email
+        //        await _emailSender.SendEmailAsync(user.Email, emailSubject, emailBody);
 
                 return new { Message = "Registration successful. Please check your email to verify your account." };
             }
@@ -77,15 +89,7 @@ namespace infrastructures.Services
             return new { Errors = result.Errors.Select(e => e.Description) };
         }
 
-        public async Task<bool> ConfirmEmailAsync(string userId, string token)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-                return false;
-
-            var result = await _userManager.ConfirmEmailAsync(user, token);
-            return result.Succeeded;
-        }
+        
 
         public async Task<object> LoginAsync(LoginDto userVm)
         {
@@ -133,41 +137,77 @@ namespace infrastructures.Services
             };
         }
 
-        public async Task SendEmailAsync(string email, string subject, string htmlMessage)
+        public async Task<object> ForgotPasswordAsync(string email)
         {
-            try
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
             {
-                var smtpServer = _configuration["EmailSettings:SmtpServer"];
-                var port = int.Parse(_configuration["EmailSettings:Port"]);
-                var senderEmail = _configuration["EmailSettings:SenderEmail"];
-                var senderPassword = _configuration["EmailSettings:SenderPassword"];
-
-                using (var client = new SmtpClient(smtpServer, port))
-                {
-                    client.Credentials = new NetworkCredential(senderEmail, senderPassword);
-                    client.EnableSsl = true;
-
-                    var mailMessage = new MailMessage
-                    {
-                        From = new MailAddress(senderEmail),
-                        Subject = subject,
-                        Body = htmlMessage,
-                        IsBodyHtml = true
-                    };
-
-                    mailMessage.To.Add(email);
-                    await client.SendMailAsync(mailMessage);
-                    Console.WriteLine($"Email successfully sent to {email}");
-                }
+                // Don't reveal that the user doesn't exist
+                return new { Message = "If your email exists in our system, you will receive a password reset link." };
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error sending email: {ex.Message}");
-                throw;
-            }
+
+            // Generate password reset token
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            // Create reset link
+            var resetLink = $"{_configuration["FrontendUrl"]}/reset-password?email={email}&token={WebUtility.UrlEncode(token)}";
+
+            // Email content
+            var emailSubject = "Password Reset Request";
+            var emailBody = $@"
+        <h2>Password Reset</h2>
+        <p>You requested to reset your password. Please click the link below to set a new password:</p>
+        <p><a href='{resetLink}'>Reset Password</a></p>
+        <p>If you didn't request this, please ignore this email.</p>
+        <p>Reset link: {resetLink}</p>";
+
+            // Send email
+            await _emailSender.SendEmailAsync(email, emailSubject, emailBody);
+
+            return new { Message = "Password reset link has been sent to your email." };
         }
 
+        public async Task<object> ResetPasswordAsync(ResetPasswordDto resetPasswordDto)
+        {
+            var user = await _userManager.FindByEmailAsync(resetPasswordDto.Email);
+            if (user == null)
+            {
+                return new { Message = "Invalid email address." };
+            }
 
+            var result = await _userManager.ResetPasswordAsync(
+                user,
+                resetPasswordDto.Token,
+                resetPasswordDto.NewPassword);
+
+            if (result.Succeeded)
+            {
+                return new { Message = "Password has been reset successfully." };
+            }
+
+            return new { Errors = result.Errors.Select(e => e.Description) };
+        }
+
+        public async Task<object> ChangePasswordAsync(ChangePasswordDto changePasswordDto)
+        {
+            var user = await _userManager.FindByIdAsync(changePasswordDto.UserId);
+            if (user == null)
+            {
+                return new { Message = "User not found." };
+            }
+
+            var result = await _userManager.ChangePasswordAsync(
+                user,
+                changePasswordDto.CurrentPassword,
+                changePasswordDto.NewPassword);
+
+            if (result.Succeeded)
+            {
+                return new { Message = "Password has been changed successfully." };
+            }
+
+            return new { Errors = result.Errors.Select(e => e.Description) };
+        }
 
     }
 }

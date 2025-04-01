@@ -71,6 +71,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<ApplicationUser>()
          .HasIndex(u => u.UserName)
          .IsUnique(false);
+        builder.Entity<ApplicationUser>()
+        .HasIndex(u => u.NormalizedUserName)
+        .IsUnique(false);
 
         builder.Entity<IdentityUser>()
         .HasIndex(u => u.Email)

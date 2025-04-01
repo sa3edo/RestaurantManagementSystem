@@ -1,11 +1,14 @@
 ﻿using infrastructures.Services.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Models.DTO;
 using RestaurantManagementSystem.DTO;
 using RestaurantManagementSystem.Models;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace RestaurantManagementSystem.Controllers
@@ -45,54 +48,32 @@ namespace RestaurantManagementSystem.Controllers
             return Ok(result);
         }
 
-        [HttpGet("ConfirmEmail")]
-        public async Task<IActionResult> ConfirmEmail(string userId, string token)
+        [HttpPost("ForgotPassword")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword([FromBody] string email)
         {
-            var result = await _accountService.ConfirmEmailAsync(userId, token);
-            if (result)
-            {
-                return Redirect($"{_configuration["FrontendUrl"]}/login");
-            }
-            return Redirect($"{_configuration["FrontendUrl"]}/email-verification-failed");
+            var result = await _accountService.ForgotPasswordAsync(email);
+            return Ok(result);
         }
 
-
-        [HttpPost("ResendVerificationEmail")]
-        public async Task<IActionResult> ResendVerificationEmail([FromBody] string email)
+        [HttpPost("ResetPassword")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
         {
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
-            {
-                return BadRequest(new { Message = "User not found." });
-            }
-
-            if (user.EmailConfirmed)
-            {
-                return BadRequest(new { Message = "Email is already verified." });
-            }
-
-            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            var confirmationLink = $"{_configuration["FrontendUrl"]}/verify-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
-
-            await _emailSender.SendEmailAsync(
-                user.Email,
-                "Email Confirmation",
-                $"Click here to verify your email: <a href='{confirmationLink}'>Verify Email</a>");
-
-            return Ok(new { Message = "Verification email sent successfully." });
+            var result = await _accountService.ResetPasswordAsync(resetPasswordDto);
+            return Ok(result);
         }
-        [HttpPost("test-email")]
-        public async Task<IActionResult> TestEmail()
+
+        [HttpPost("ChangePassword")]
+        [Authorize]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
         {
-            try
-            {
-                await _emailSender.SendEmailAsync("recipient@example.com", "Test Email", "<h1>This is a test</h1>");
-                return Ok("Test email sent successfully");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Error: {ex.Message}");
-            }
+            // Get current user ID from claims
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            changePasswordDto.UserId = userId;
+
+            var result = await _accountService.ChangePasswordAsync(changePasswordDto);
+            return Ok(result);
         }
 
     }

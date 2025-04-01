@@ -51,12 +51,10 @@ namespace RestaurantManagementSystem.Controllers
         {
             return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         }
-        [HttpGet("GetAllRestaurant")]
-        public async Task<ActionResult<IEnumerable<MenuItem>>> GetAllRestaurant()
+        public async Task<ActionResult<IEnumerable<MenuItem>>> GetAllRestaurant(string? search = null, int page = 1, int pageSize = 10)
         {
             try
             {
-                
                 var restaurants = await _restaurantService.GetAllRestaurantsAsync();
 
                 if (restaurants == null || !restaurants.Any(r => r.Status == RestaurantStatus.Approved))
@@ -64,7 +62,14 @@ namespace RestaurantManagementSystem.Controllers
 
                 var approvedRestaurants = restaurants.Where(r => r.Status == RestaurantStatus.Approved);
 
-                return Ok(approvedRestaurants);
+                if (!string.IsNullOrEmpty(search))
+                {
+                    approvedRestaurants = approvedRestaurants.Where(r => r.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
+                }
+
+                var pagedRestaurants = approvedRestaurants.Skip((page - 1) * pageSize).Take(pageSize);
+
+                return Ok(new { TotalItems = approvedRestaurants.Count(), Page = page, PageSize = pageSize, Items = pagedRestaurants });
             }
             catch (Exception ex)
             {
@@ -72,11 +77,27 @@ namespace RestaurantManagementSystem.Controllers
             }
         }
 
+
         [HttpGet("GetRestaurantMenu/{restaurantId}/menu")]
-        public async Task<ActionResult<IEnumerable<MenuItem>>> GetRestaurantMenu(int restaurantId)
+        public async Task<ActionResult<IEnumerable<MenuItem>>> GetRestaurantMenu(int restaurantId, string? search = null, int page = 1, int pageSize = 10)
         {
-            var menu = await _menuItemService.GetMenuItemsByRestaurantAsync(restaurantId);
-            return Ok(menu);
+            try
+            {
+                var menu = await _menuItemService.GetMenuItemsByRestaurantAsync(restaurantId);
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    menu = menu.Where(m => m.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
+                }
+
+                var pagedMenu = menu.Skip((page - 1) * pageSize).Take(pageSize);
+
+                return Ok(new { TotalItems = menu.Count(), Page = page, PageSize = pageSize, Items = pagedMenu });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred while retrieving the menu.", Error = ex.Message });
+            }
         }
 
         [HttpPost("CreateOrder")]

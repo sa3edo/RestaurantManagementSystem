@@ -24,10 +24,15 @@ namespace infrastructures.Services
                 var senderEmail = _configuration["EmailSettings:SenderEmail"];
                 var senderPassword = _configuration["EmailSettings:SenderPassword"];
 
-                using (var client = new SmtpClient(smtpServer, port))
+                using (var client = new SmtpClient())
                 {
-                    client.Credentials = new NetworkCredential(senderEmail, senderPassword);
+                    client.Host = smtpServer;
+                    client.Port = port;
                     client.EnableSsl = true;
+                    client.UseDefaultCredentials = false;
+                    client.Credentials = new NetworkCredential(senderEmail, senderPassword);
+                    client.DeliveryMethod = SmtpDeliveryMethod.Network;
+                    client.Timeout = 20000; // 20 second timeout
 
                     var mailMessage = new MailMessage
                     {
@@ -38,14 +43,18 @@ namespace infrastructures.Services
                     };
 
                     mailMessage.To.Add(email);
-                    await client.SendMailAsync(mailMessage);
-                }
 
-                Console.WriteLine("Email sent to: " + email);
+                    // Add this line to help with Gmail authentication
+                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
+                    await client.SendMailAsync(mailMessage);
+                    Console.WriteLine($"Email sent successfully to {email}");
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error sending email: " + ex.Message);
+                Console.WriteLine($"Failed to send email to {email}. Error: {ex.ToString()}");
+                throw;
             }
         }
 

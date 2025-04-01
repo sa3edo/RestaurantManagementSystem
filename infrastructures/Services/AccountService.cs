@@ -67,11 +67,11 @@ namespace infrastructures.Services
                     await _userManager.AddToRoleAsync(user, SD.CustomerRole);
                 }
 
-                // Generate email confirmation token
-                //var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                //var confirmationLink = $"{_configuration["FrontendUrl"]}/confirm-email?userId={user.Id}&token={WebUtility.UrlEncode(token)}";
+                //Generate email confirmation token
+        //        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        //        var confirmationLink = $"{_configuration["FrontendUrl"]}/confirm-email?userId={user.Id}&token={WebUtility.UrlEncode(token)}";
 
-                // Email content
+        //        //Email content
         //        var emailSubject = "Confirm Your Email";
         //        var emailBody = $@"
         //    <h2>Welcome to Our Service!</h2>
@@ -83,7 +83,7 @@ namespace infrastructures.Services
         //        // Send email
         //        await _emailSender.SendEmailAsync(user.Email, emailSubject, emailBody);
 
-                return new { Message = "Registration successful. Please check your email to verify your account." };
+                return new { Message = "Registration successful" };
             }
 
             return new { Errors = result.Errors.Select(e => e.Description) };

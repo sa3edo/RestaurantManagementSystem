@@ -51,6 +51,7 @@ namespace RestaurantManagementSystem.Controllers
         {
             return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         }
+        [HttpGet("GetAllRestaurant")]
         public async Task<ActionResult<IEnumerable<MenuItem>>> GetAllRestaurant(string? search = null, int page = 1, int pageSize = 10)
         {
             try

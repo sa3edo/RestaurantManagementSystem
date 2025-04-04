@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace infrastructures.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250403133017_NullName")]
+    partial class NullName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -128,7 +131,7 @@ namespace infrastructures.Migrations
 
                     b.HasIndex("NormalizedUserName");
 
-                    b.ToTable("IdentityUser", (string)null);
+                    b.ToTable("IdentityUser");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -226,7 +229,7 @@ namespace infrastructures.Migrations
 
                     b.HasKey("CategoryID");
 
-                    b.ToTable("FoodCategories", (string)null);
+                    b.ToTable("FoodCategories");
                 });
 
             modelBuilder.Entity("Models.Models.MenuItem", b =>
@@ -266,7 +269,7 @@ namespace infrastructures.Migrations
 
                     b.HasIndex("RestaurantID");
 
-                    b.ToTable("MenuItems", (string)null);
+                    b.ToTable("MenuItems");
                 });
 
             modelBuilder.Entity("Models.Models.Order", b =>
@@ -301,7 +304,7 @@ namespace infrastructures.Migrations
 
                     b.HasIndex("RestaurantID");
 
-                    b.ToTable("Orders", (string)null);
+                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("Models.Models.OrderItem", b =>
@@ -330,7 +333,7 @@ namespace infrastructures.Migrations
 
                     b.HasIndex("OrderID");
 
-                    b.ToTable("OrderItems", (string)null);
+                    b.ToTable("OrderItems");
                 });
 
             modelBuilder.Entity("Models.Models.Reservation", b =>
@@ -373,7 +376,7 @@ namespace infrastructures.Migrations
 
                     b.HasIndex("UserID");
 
-                    b.ToTable("Reservations", (string)null);
+                    b.ToTable("Reservations");
                 });
 
             modelBuilder.Entity("Models.Models.Restaurant", b =>
@@ -416,7 +419,7 @@ namespace infrastructures.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Restaurants", (string)null);
+                    b.ToTable("Restaurants");
                 });
 
             modelBuilder.Entity("Models.Models.Review", b =>
@@ -452,7 +455,7 @@ namespace infrastructures.Migrations
 
                     b.HasIndex("RestaurantID");
 
-                    b.ToTable("Reviews", (string)null);
+                    b.ToTable("Reviews");
                 });
 
             modelBuilder.Entity("Models.Models.Table", b =>
@@ -476,7 +479,7 @@ namespace infrastructures.Migrations
 
                     b.HasIndex("RestaurantId");
 
-                    b.ToTable("Tables", (string)null);
+                    b.ToTable("Tables");
                 });
 
             modelBuilder.Entity("Models.Models.TimeSlot", b =>
@@ -503,7 +506,7 @@ namespace infrastructures.Migrations
 
                     b.HasIndex("RestaurantID");
 
-                    b.ToTable("TimeSlots", (string)null);
+                    b.ToTable("TimeSlots");
                 });
 
             modelBuilder.Entity("RestaurantManagementSystem.Models.ApplicationUser", b =>

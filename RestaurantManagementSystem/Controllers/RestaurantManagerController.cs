@@ -89,8 +89,8 @@ public class RestaurantManagerController : ControllerBase
         }
     }
 
-    [HttpPut("CreateRestaurant")]
-    public async Task<IActionResult> CreateRestaurant([FromBody] Models.Models.Restaurant restaurant, IFormFile? RestImg)
+    [HttpPost("CreateRestaurant")]
+    public async Task<IActionResult> CreateRestaurant([FromForm] Models.Models.Restaurant restaurant, IFormFile? RestImg)
     {
         try
         {
@@ -99,7 +99,7 @@ public class RestaurantManagerController : ControllerBase
                 return Unauthorized(new { Message = "Unauthorized access." });
 
             restaurant.ManagerID = userManagerId;
-            restaurant.Status = (RestaurantStatus)ReservationStatus.Confirmed;
+            restaurant.Status = (RestaurantStatus)ReservationStatus.Pending;
             await _restaurantService.CreateRestaurantAsync(restaurant, RestImg);
             await _hubContext.Clients.All.SendAsync("ReceiveUpdate", "RestaurantAdded", restaurant);
             return NoContent();
@@ -110,7 +110,7 @@ public class RestaurantManagerController : ControllerBase
         }
     }
     [HttpPut("UpdateRestaurant")]
-    public async Task<IActionResult> UpdateRestaurant(int restaurantId, [FromBody] Models.Models.Restaurant restaurant, IFormFile? RestImg)
+    public async Task<IActionResult> UpdateRestaurant(int restaurantId, [FromForm] Models.Models.Restaurant restaurant, IFormFile? RestImg)
     {
         try
         {
@@ -172,7 +172,7 @@ public class RestaurantManagerController : ControllerBase
     }
 
     [HttpPost("CreateMenuItem")]
-    public async Task<IActionResult> CreateMenuItem(int restaurantId, [FromBody] Models.Models.MenuItem menuItem,IFormFile? MenuImg)
+    public async Task<IActionResult> CreateMenuItem(int restaurantId, [FromForm] Models.Models.MenuItem menuItem,IFormFile? MenuImg)
     {
         try
         {
@@ -191,7 +191,7 @@ public class RestaurantManagerController : ControllerBase
         }
     }
     [HttpPut("UpdateMenuItem/{menuItemId}")]
-    public async Task<IActionResult> UpdateMenuItem(int menuItemId, [FromBody] Models.Models.MenuItem menuItem, IFormFile? MenuImg)
+    public async Task<IActionResult> UpdateMenuItem(int menuItemId, [FromForm] Models.Models.MenuItem menuItem, IFormFile? MenuImg)
     {
         try
         {
@@ -232,7 +232,7 @@ public class RestaurantManagerController : ControllerBase
     // ------------------------ Order Management ------------------------
 
     [HttpPut("orders/{orderId}/UpdateOrderStatus")]
-    public async Task<IActionResult> UpdateOrderStatus(int orderId, [FromBody] OrderStatus newStatus)
+    public async Task<IActionResult> UpdateOrderStatus(int orderId, [FromForm] OrderStatus newStatus)
     {
         try
         {
@@ -323,7 +323,7 @@ public class RestaurantManagerController : ControllerBase
     }
 
     [HttpPost("CreateTimeSlot")]
-    public async Task<IActionResult> CreateTimeSlot(int restaurantId, [FromBody] Models.Models.TimeSlot timeSlot)
+    public async Task<IActionResult> CreateTimeSlot(int restaurantId, [FromForm] Models.Models.TimeSlot timeSlot)
     {
         try
         {
@@ -375,7 +375,7 @@ public class RestaurantManagerController : ControllerBase
     }
 
     [HttpPost("CreateTable")]
-    public async Task<IActionResult> CreateTable(int restaurantId, [FromBody] Models.Models.Table table)
+    public async Task<IActionResult> CreateTable(int restaurantId, [FromForm] Models.Models.Table table)
     {
         try
         {
@@ -390,7 +390,7 @@ public class RestaurantManagerController : ControllerBase
     }
 
     [HttpPut("UpdateTable/{tableId}")]
-    public async Task<IActionResult> UpdateTable(int tableId, [FromBody] Models.Models.Table table)
+    public async Task<IActionResult> UpdateTable(int tableId, [FromForm] Models.Models.Table table)
     {
         try
         {

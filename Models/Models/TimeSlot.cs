@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+﻿using AutoMapper.Configuration.Annotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -14,12 +15,12 @@ namespace Models.Models
         public int TimeSlotID { get; set; }
         public int RestaurantID { get; set; }
         [ValidateNever]
+        [Ignore]
         public Restaurant? Restaurant { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public bool IsAvailable { get; set; } = true;
-        [ValidateNever]
-        public ICollection<Reservation>? Reservations { get; set; }
+      
     }
 
 }

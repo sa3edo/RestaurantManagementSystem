@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+﻿using AutoMapper.Configuration.Annotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -18,8 +19,10 @@ namespace Models.Models
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         [ValidateNever]
+        [Ignore]
         public Order? Order { get; set; }
         [ValidateNever]
+        [Ignore]
         public MenuItem? MenuItem { get; set; }
     }
 

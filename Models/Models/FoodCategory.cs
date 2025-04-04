@@ -13,8 +13,8 @@ namespace Models.Models
         [Key]
         public int CategoryID { get; set; }
         public string Name { get; set; } = string.Empty;
-        [Ignore]
-        public ICollection<MenuItem>? MenuItems { get; set; }
+        
+        
     }
 
 }

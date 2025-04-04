@@ -29,7 +29,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         sqlServerOptions => sqlServerOptions.EnableRetryOnFailure())); // Retry on transient failures
 
 //builder.Services.AddDbContext<ApplicationDbContext>(
-   
+
 //    option => option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 //    );
 
@@ -37,14 +37,14 @@ builder.Services.Configure<IdentityOptions>(options =>
 {
     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
     options.Lockout.MaxFailedAccessAttempts = 5;
-    options.Lockout.AllowedForNewUsers = true; 
+    options.Lockout.AllowedForNewUsers = true;
 });
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(option =>
 {
     option.User.RequireUniqueEmail = true;
-    
-    
+
+
 })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
@@ -53,13 +53,12 @@ builder.Services.AddScoped<IMenuItem, MenuItem>();
 builder.Services.AddScoped<IOrder, Order>();
 builder.Services.AddScoped<IOrderItem, OrderItem>();
 builder.Services.AddScoped<IRestaurant, Restaurant>();
-builder.Services.AddScoped<IReview,infrastructures.Repository.Review>();
+builder.Services.AddScoped<IReview, infrastructures.Repository.Review>();
 builder.Services.AddScoped<IReservation, infrastructures.Repository.Rservation>();
-builder.Services.AddScoped<ITimeSlots,TimeSlot>();
-builder.Services.AddScoped<ITable,Table>();
-builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
-builder.Services.AddScoped<IAccountService,infrastructures.Services.AccountService>();
-builder.Services.AddScoped<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSender>();
+builder.Services.AddScoped<ITimeSlots, TimeSlot>();
+builder.Services.AddScoped<ITable, Table>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IAccountService, infrastructures.Services.AccountService>();
 builder.Services.AddScoped<IFoodCategoryService, FoodCategoryService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IRestaurantService, RestaurantService>();
@@ -74,6 +73,12 @@ builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Str
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 builder.Services.AddCustomJwtAuth(builder.Configuration);
 builder.Services.AddHostedService<DataCleanupService>();
+builder.Services.AddScoped<Utility.Email.IEmailSender, EmailSender>();
+//builder.Services.AddTransient<Utility.Email.IEmailSender,EmailSender>();
+//builder.Services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSender>();
+// Register EmailSender
+// Add services to the container.
+builder.Services.AddControllersWithViews();
 
 // Load appsettings.json and override with appsettings.Development.json in development mode
 builder.Configuration.AddEnvironmentVariables();

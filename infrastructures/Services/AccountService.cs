@@ -53,7 +53,7 @@ namespace infrastructures.Services
             }
 
             var user = _mapper.Map<ApplicationUser>(userDto);
-           // user.EmailConfirmed = false; // Important for email verification
+            // user.EmailConfirmed = false; // Important for email verification
             var result = await _userManager.CreateAsync(user, userDto.Passwords);
 
             if (result.Succeeded)
@@ -68,20 +68,20 @@ namespace infrastructures.Services
                 }
 
                 //Generate email confirmation token
-        //        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-        //        var confirmationLink = $"{_configuration["FrontendUrl"]}/confirm-email?userId={user.Id}&token={WebUtility.UrlEncode(token)}";
+                //        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                //        var confirmationLink = $"{_configuration["FrontendUrl"]}/confirm-email?userId={user.Id}&token={WebUtility.UrlEncode(token)}";
 
-        //        //Email content
-        //        var emailSubject = "Confirm Your Email";
-        //        var emailBody = $@"
-        //    <h2>Welcome to Our Service!</h2>
-        //    <p>Please confirm your email by clicking the link below:</p>
-        //    <p><a href='{confirmationLink}'>Confirm Email</a></p>
-        //    <p>If you didn't request this, please ignore this email.</p>
-        //";
+                //        //Email content
+                //        var emailSubject = "Confirm Your Email";
+                //        var emailBody = $@"
+                //    <h2>Welcome to Our Service!</h2>
+                //    <p>Please confirm your email by clicking the link below:</p>
+                //    <p><a href='{confirmationLink}'>Confirm Email</a></p>
+                //    <p>If you didn't request this, please ignore this email.</p>
+                //";
 
-        //        // Send email
-        //        await _emailSender.SendEmailAsync(user.Email, emailSubject, emailBody);
+                //        // Send email
+                //        await _emailSender.SendEmailAsync(user.Email, emailSubject, emailBody);
 
                 return new { Message = "Registration successful" };
             }
@@ -89,7 +89,7 @@ namespace infrastructures.Services
             return new { Errors = result.Errors.Select(e => e.Description) };
         }
 
-        
+
 
         public async Task<object> LoginAsync(LoginDto userVm)
         {
@@ -115,7 +115,7 @@ namespace infrastructures.Services
               new Claim(ClaimTypes.NameIdentifier, user.Id),
                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
               };
-            
+
             var roles = await _userManager.GetRolesAsync(user);
             claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 

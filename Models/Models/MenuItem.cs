@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+﻿using AutoMapper.Configuration.Annotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -20,11 +21,13 @@ namespace Models.Models
         public string? ImgUrl { get; set; }
         public bool Availability { get; set; } = true;
         [ValidateNever]
+        [Ignore]
         public Restaurant? Restaurant { get; set; }
         [ValidateNever]
+        [Ignore]
         public FoodCategory? Category { get; set; }
-        [ValidateNever]
-        public ICollection<OrderItem>? OrderItems { get; set; }
+
+        
     }
 
 }

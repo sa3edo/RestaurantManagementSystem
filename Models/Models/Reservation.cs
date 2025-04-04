@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+﻿using AutoMapper.Configuration.Annotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using RestaurantManagementSystem.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Models.Models
 {
@@ -26,10 +28,11 @@ namespace Models.Models
         public int TableId { get; set; }
 
         [ValidateNever]
+        [JsonIgnore]
         public Table? Table { get; set; }
 
         [Required]
-        public DateOnly ReservationDate { get; set; }  // 🆕 Added Date Property
+        public DateOnly ReservationDate { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow; 
        public ReservationStatus Status { get; set; } = ReservationStatus.Pending;

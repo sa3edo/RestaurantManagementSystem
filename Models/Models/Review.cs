@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+﻿using AutoMapper.Configuration.Annotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using RestaurantManagementSystem.Models;
 using System;
 using System.Collections.Generic;
@@ -14,9 +15,12 @@ namespace Models.Models
         [Key]
         public int ReviewID { get; set; }
         public int UserID { get; set; }
+        [ValidateNever]
+        [Ignore]
         public ApplicationUser? Customer { get; set; }
         public int RestaurantID { get; set; }
         [ValidateNever]
+        [Ignore]
         public Restaurant? Restaurant { get; set; }
         public int Rating { get; set; }
         public string Comment { get; set; } = string.Empty;

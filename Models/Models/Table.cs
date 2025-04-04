@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using AutoMapper.Configuration.Annotations;
 
 namespace Models.Models
 {
@@ -22,9 +23,9 @@ namespace Models.Models
 
         public int RestaurantId { get; set; }
         [ValidateNever]
+        [Ignore]
         public Restaurant? Restaurant { get; set; }
-        [ValidateNever]
-        public List<Reservation>? Reservations { get; set; }
+       
     }
 
 }

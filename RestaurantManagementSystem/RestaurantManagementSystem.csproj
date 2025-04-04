@@ -43,6 +43,7 @@
 
   <ItemGroup>
     <Folder Include="MenuImg\" />
+    <Folder Include="RestImages\" />
     <Folder Include="RestImg\" />
   </ItemGroup>
 

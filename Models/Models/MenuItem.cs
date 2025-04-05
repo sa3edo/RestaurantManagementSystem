@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Models.Models
@@ -26,8 +27,9 @@ namespace Models.Models
         [ValidateNever]
         [Ignore]
         public FoodCategory? Category { get; set; }
-
-        
+        [ValidateNever]
+        [JsonIgnore]
+        public IEnumerable<OrderItem> OrderItems { get; set; }
     }
 
 }

@@ -4,8 +4,6 @@ using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
 
-namespace Utility.Email
-{
     public class EmailSender : IEmailSender
     {
         private readonly IConfiguration _configuration;
@@ -59,4 +57,3 @@ namespace Utility.Email
         }
 
     }
-}

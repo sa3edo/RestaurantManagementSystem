@@ -14,6 +14,8 @@ using Utility.Profiles;
 using Utility.Email;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Utility.SignalR;
+using Utility.Chat;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,6 +55,7 @@ builder.Services.AddScoped<IMenuItem, MenuItem>();
 builder.Services.AddScoped<IOrder, Order>();
 builder.Services.AddScoped<IOrderItem, OrderItem>();
 builder.Services.AddScoped<IRestaurant, Restaurant>();
+builder.Services.AddScoped<IChat, ChatRepository>();
 builder.Services.AddScoped<IReview, infrastructures.Repository.Review>();
 builder.Services.AddScoped<IReservation, infrastructures.Repository.Rservation>();
 builder.Services.AddScoped<ITimeSlots, TimeSlot>();
@@ -73,9 +76,9 @@ builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Str
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 builder.Services.AddCustomJwtAuth(builder.Configuration);
 builder.Services.AddHostedService<DataCleanupService>();
-builder.Services.AddScoped<Utility.Email.IEmailSender, EmailSender>();
+//builder.Services.AddScoped<Utility.Email.IEmailSender, EmailSender>();
 //builder.Services.AddTransient<Utility.Email.IEmailSender,EmailSender>();
-//builder.Services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSender>();
+builder.Services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSender>();
 // Register EmailSender
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -92,7 +95,7 @@ var emailSettings = new
 };
 
 var app = builder.Build();
-app.MapHub<AdminHub>("/adminHub");
+
 app.UseCors("AllowLocalhost");
 app.UseStaticFiles();
 app.UseStaticFiles(new StaticFileOptions
@@ -111,7 +114,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.MapHub<AdminHub>("/adminHub");
+app.MapHub<ChatHub>("/chatHub");
 app.UseHttpsRedirection();
 
 app.UseAuthorization();

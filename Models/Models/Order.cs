@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using RestaurantManagementSystem.Models;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Models.Models
 {
@@ -20,6 +21,9 @@ namespace Models.Models
         public OrderStatus Status { get; set; } = OrderStatus.Pending;
         public decimal TotalAmount { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        [ValidateNever]
+        [JsonIgnore]
+        public IEnumerable<OrderItem> OrderItems { get; set; }
 
     }
 

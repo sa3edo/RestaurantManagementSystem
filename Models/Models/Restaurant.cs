@@ -24,8 +24,14 @@ namespace Models.Models
         public ApplicationUser? User { get; set; }
         public RestaurantStatus Status { get; set; } = RestaurantStatus.Pending;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        [ValidateNever]
+        [JsonIgnore]
+        public IEnumerable<Reservation> Reservations { get; set; }
+        [ValidateNever]
+        [JsonIgnore]
+        public IEnumerable<TimeSlot> TimeSlot { get; set; }
 
-       
+
     }
 
     public enum RestaurantStatus

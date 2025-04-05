@@ -13,6 +13,7 @@ namespace infrastructures.UnitOfWork
        public IFoodCtegory foodCategory { get; }
         public IMenuItem menuItem { get; }
         public IOrder order { get; }
+        public IChat Chat { get; }
         public IOrderItem orderItem { get; }
         public IReservation reservation { get; }
         public IRestaurant restaurant { get; }

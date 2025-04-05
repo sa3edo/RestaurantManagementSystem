@@ -100,13 +100,13 @@ app.UseCors("AllowLocalhost");
 app.UseStaticFiles();
 app.UseStaticFiles(new StaticFileOptions
 {
-    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "RestImg")),
-    RequestPath = "/RestImg"
+    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "RestImages")),
+    RequestPath = "/RestImages"
 });
 app.UseStaticFiles(new StaticFileOptions
 {
-    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "MenuImg")),
-    RequestPath = "/MenuImg"
+    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "MenuImages")),
+    RequestPath = "/MenuImages"
 });
 //Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

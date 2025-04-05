@@ -52,10 +52,11 @@ namespace RestaurantManagementSystem.Controllers
             return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         }
         [HttpGet("GetAllRestaurant")]
-        public async Task<ActionResult<IEnumerable<MenuItem>>> GetAllRestaurant(string? search = null, int page = 1, int pageSize = 10)
+        public async Task<ActionResult<IEnumerable<MenuItem>>> GetAllRestaurant(string? search = null, int page = 1)
         {
             try
             {
+                int pageSize = 10;
                 var restaurants = await _restaurantService.GetAllRestaurantsAsync();
 
                 if (restaurants == null || !restaurants.Any(r => r.Status == RestaurantStatus.Approved))
@@ -80,10 +81,11 @@ namespace RestaurantManagementSystem.Controllers
 
 
         [HttpGet("GetRestaurantMenu/{restaurantId}/menu")]
-        public async Task<ActionResult<IEnumerable<MenuItem>>> GetRestaurantMenu(int restaurantId, string? search = null, int page = 1, int pageSize = 10)
+        public async Task<ActionResult<IEnumerable<MenuItem>>> GetRestaurantMenu(int restaurantId, string? search = null, int page = 1)
         {
             try
             {
+                int pageSize = 10;
                 var menu = await _menuItemService.GetMenuItemsByRestaurantAsync(restaurantId);
 
                 if (!string.IsNullOrEmpty(search))

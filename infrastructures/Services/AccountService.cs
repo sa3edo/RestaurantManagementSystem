@@ -68,20 +68,20 @@ namespace infrastructures.Services
                 }
 
                 //Generate email confirmation token
-                //        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                //        var confirmationLink = $"{_configuration["FrontendUrl"]}/confirm-email?userId={user.Id}&token={WebUtility.UrlEncode(token)}";
+                //var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                //var confirmationLink = $"{_configuration["FrontendUrl"]}/confirm-email?userId={user.Id}&token={WebUtility.UrlEncode(token)}";
 
-                //        //Email content
-                //        var emailSubject = "Confirm Your Email";
-                //        var emailBody = $@"
+                ////Email content
+                //var emailSubject = "Confirm Your Email";
+                //var emailBody = $@"
                 //    <h2>Welcome to Our Service!</h2>
                 //    <p>Please confirm your email by clicking the link below:</p>
                 //    <p><a href='{confirmationLink}'>Confirm Email</a></p>
                 //    <p>If you didn't request this, please ignore this email.</p>
                 //";
 
-                //        // Send email
-                //        await _emailSender.SendEmailAsync(user.Email, emailSubject, emailBody);
+                //// Send email
+                //await _emailSender.SendEmailAsync(user.Email, emailSubject, emailBody);
 
                 return new { Message = "Registration successful" };
             }

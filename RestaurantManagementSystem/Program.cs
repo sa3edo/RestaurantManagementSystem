@@ -85,9 +85,9 @@ builder.Services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSe
 builder.Services.AddControllersWithViews();
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
+    options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:4200")
+        policy.WithOrigins("http://localhost:4200") // React dev server
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -107,7 +107,7 @@ var emailSettings = new
 
 var app = builder.Build();
 
-app.UseCors("AllowLocalhost");
+//app.UseCors("AllowLocalhost");
 app.UseStaticFiles();
 app.UseStaticFiles(new StaticFileOptions
 {
@@ -127,6 +127,7 @@ if (app.Environment.IsDevelopment())
 }
 app.MapHub<AdminHub>("/adminHub");
 app.MapHub<ChatHub>("/chatHub");
+app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
 
 app.UseAuthorization();

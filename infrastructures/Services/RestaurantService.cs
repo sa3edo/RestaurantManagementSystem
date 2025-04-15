@@ -80,8 +80,18 @@ namespace infrastructures.Services
 
         public async Task<Restaurant?> RejectRestaurantAsync(int restaurantId)
         {
-            return await ChangeRestaurantStatusAsync(restaurantId, RestaurantStatus.Rejected);
+            var restaurant = await _unitOfWork.restaurant.GetOneAsync(expression: r => r.RestaurantID == restaurantId);
+            if (restaurant == null)
+                return null;
+                if (!string.IsNullOrEmpty(restaurant.ImgUrl))
+                {
+                    await DeleteImage(restaurant.ImgUrl);
+                }
+                _unitOfWork.restaurant.Delete(restaurant);
+                await _unitOfWork.CompleteAsync();
+                return restaurant;
         }
+
 
         private async Task<Restaurant?> ChangeRestaurantStatusAsync(int restaurantId, RestaurantStatus status)
         {

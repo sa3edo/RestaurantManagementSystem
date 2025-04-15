@@ -298,7 +298,13 @@ public class AdminController : ControllerBase
     {
         try
         {
-           await _restaurantService.ApproveRestaurantAsync(restaurantId);
+            await _restaurantService.ApproveRestaurantAsync(restaurantId);
+            await _hubContext.Clients.All.SendAsync("ReceiveNotification", new
+            {
+                RestaurantId = restaurantId,
+                Message = $"✅ Restaurant with ID {restaurantId} has been approved."
+            });
+
             return Ok("✅ Restaurant approved.");
         }
         catch (Exception ex)
@@ -313,6 +319,12 @@ public class AdminController : ControllerBase
         try
         {
             await _restaurantService.RejectRestaurantAsync(restaurantId);
+            await _hubContext.Clients.All.SendAsync("ReceiveNotification", new
+            {
+                RestaurantId = restaurantId,
+                Message = $"❌ Restaurant with ID {restaurantId} has been rejected."
+            });
+
             return Ok("❌ Restaurant rejected.");
         }
         catch (Exception ex)
@@ -320,7 +332,6 @@ public class AdminController : ControllerBase
             return StatusCode(500, $"❌ Error: {ex.Message}");
         }
     }
-
     // ------------------------ Food Category Management ------------------------
 
     [HttpGet("GetAllFoodCategoriesAsync")]
@@ -466,11 +477,7 @@ public class AdminController : ControllerBase
                 return BadRequest("Invalid restaurant ID.");
 
             int pageSize = 10;
-
-
             var reservations = await _reservationService.GetReservationsByRestaurantAsync(restaurantId);
-
-
             if (status.HasValue)
             {
                 reservations = reservations.Where(r => r.Status.ToString().Equals(status.Value.ToString(), StringComparison.OrdinalIgnoreCase));

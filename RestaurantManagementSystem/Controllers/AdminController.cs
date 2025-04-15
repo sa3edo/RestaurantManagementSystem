@@ -173,6 +173,42 @@ public class AdminController : ControllerBase
     }
 
     // ------------------------ Restaurant Management ------------------------
+    
+    [HttpGet("GetPendngRestaurants")]
+    public async Task<IActionResult> GetPendingRestaurant([FromQuery] string? search, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+    {
+        try
+        {
+            var restaurants = await _restaurantService.GetAllRestaurantsAsync();
+            var approvedRestaurants = restaurants.Where(r => r.Status == RestaurantStatus.Pending);
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                approvedRestaurants = approvedRestaurants.Where(r => r.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
+            }
+
+            var totalRecords = approvedRestaurants.Count();
+            var pagedRestaurants = approvedRestaurants
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return Ok(new
+            {
+                TotalRecords = totalRecords,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                Restaurants = pagedRestaurants
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Message = "An error occurred while retrieving the restaurant.", Error = ex.Message });
+        }
+    }
+
+
+
 
     [HttpGet("GetAllRestaurants")]
     public async Task<IActionResult> GetAllRestaurants([FromQuery] int page = 1, [FromQuery] string searchQuery = "")

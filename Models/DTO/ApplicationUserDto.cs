@@ -11,7 +11,6 @@ namespace RestaurantManagementSystem.DTO
         public string LastName { get; set; }
         [Required]
         [DataType(DataType.EmailAddress)]
-        
         public string Email { get; set; }
         [Required]
         [DataType(DataType.Password)]

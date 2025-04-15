@@ -15,6 +15,8 @@ namespace Models.Models
         public int OrderItemId { get; set; }
         public int OrderID { get; set; }
         public int MenuItemID { get; set; }
+        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Value must be greater than 0.")]
         public int Quantity { get; set; }
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

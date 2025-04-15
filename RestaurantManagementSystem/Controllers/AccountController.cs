@@ -63,12 +63,11 @@ namespace RestaurantManagementSystem.Controllers
             var result = await _accountService.ResetPasswordAsync(resetPasswordDto);
             return Ok(result);
         }
-
-        [HttpPost("ChangePassword")]
-        [Authorize]
+        
+        [HttpPut("ChangeCurrentPassword")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
         {
-            // Get current user ID from claims
+       
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             changePasswordDto.UserId = userId;
 

@@ -14,11 +14,14 @@ namespace Models.Models
     {
         [Key]
         public int TimeSlotID { get; set; }
+        [Required]
         public int RestaurantID { get; set; }
         [ValidateNever]
-        [Ignore]
+        [JsonIgnore]
         public Restaurant? Restaurant { get; set; }
+        [Required]
         public DateTime StartTime { get; set; }
+        [Required]
         public DateTime EndTime { get; set; }
         public bool IsAvailable { get; set; } = true;
         [ValidateNever]

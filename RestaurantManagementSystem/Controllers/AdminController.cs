@@ -4,9 +4,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using Models.Models;
 using RestaurantManagementSystem.Models;
 using RestaurantManagementSystem.Utility;
+using System.Threading.Tasks;
 using Utility.SignalR;
 
 
@@ -37,8 +39,53 @@ public class AdminController : ControllerBase
         _userManager = userManager;
         _hubContext = hubContext;
     }
+    [HttpGet("GetAllUsers")]
+    public async Task<IActionResult> GetAllUsers(string? search, int pageNumber = 1)
+    {
+        int pageSize = 15;
+        try
+        {
+            var query = _userManager.Users.AsQueryable();
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(u => u.Email.Contains(search));
+            }
+            var totalUsers = await query.CountAsync();
+            var users = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+            var result = new List<object>();
+
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+
+                result.Add(new
+                {
+                    user.Id,
+                    user.Email,
+                    Roles = roles
+                });
+            }
+            return Ok(new
+            {
+                TotalCount = totalUsers,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                Users = result
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Success = false, Message = "An error occurred.", Error = ex.Message });
+        }
+    }
+
+
+
     [HttpPut("AddRestaurantManager")]
-    public async Task<IActionResult> AddRestaurantManager(string Email)
+    public async Task<IActionResult> AddRestaurantManager([FromForm] string Email)
     {
         if (string.IsNullOrWhiteSpace(Email))
             return BadRequest("Email is required.");
@@ -78,7 +125,7 @@ public class AdminController : ControllerBase
         }
     }
     [HttpDelete("DeleteUser")]
-    public async Task<IActionResult> DeleteUser(string email)
+    public async Task<IActionResult> DeleteUser([FromForm] string email)
     {
         if (string.IsNullOrWhiteSpace(email))
             return BadRequest("Email is required.");
@@ -102,19 +149,19 @@ public class AdminController : ControllerBase
             return StatusCode(500, new { Success = false, Message = "An error occurred.", Error = ex.Message });
         }
     }
-    [HttpPut("lock-user/{userId}")]
-    public async Task<IActionResult> LockUser(string userId)
+    [HttpPut("lock-user")]
+    public async Task<IActionResult> LockUser([FromForm] string userId)
     {
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
             return NotFound("User not found.");
 
-        await _userManager.SetLockoutEndDateAsync(user, DateTime.UtcNow.AddMinutes(30));
+        await _userManager.SetLockoutEndDateAsync(user, DateTime.UtcNow.AddDays(30));
         return Ok($"✅ User {user.Email} has been locked.");
     }
 
-    [HttpPut("unlock-user/{userId}")]
-    public async Task<IActionResult> UnlockUser(string userId)
+    [HttpPut("unlock-user")]
+    public async Task<IActionResult> UnlockUser([FromForm] string userId)
     {
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
@@ -126,8 +173,6 @@ public class AdminController : ControllerBase
     }
 
     // ------------------------ Restaurant Management ------------------------
-
-
 
     [HttpGet("GetAllRestaurants")]
     public async Task<IActionResult> GetAllRestaurants([FromQuery] int page = 1, [FromQuery] string searchQuery = "")
@@ -154,8 +199,8 @@ public class AdminController : ControllerBase
         }
     }
 
-    [HttpPost("CreateRestaurant")]
-    public async Task<IActionResult> CreateRestaurant([FromForm]Models.Models.Restaurant restaurant, IFormFile? RestImg)
+    [HttpPost("CreateAdminRestaurant")]
+    public async Task<IActionResult> CreateRestaurant([FromForm] Models.Models.Restaurant restaurant, IFormFile? RestImg)
     {
         try
         {
@@ -176,7 +221,7 @@ public class AdminController : ControllerBase
     }
 
 
-    [HttpPut("UpdateRestaurant")]
+    [HttpPut("UpdateAdminRestaurant")]
     public async Task<IActionResult> UpdateRestaurant(int restaurantId, [FromForm]Models.Models.Restaurant restaurant, IFormFile? RestImg)
     {
         try
@@ -213,11 +258,11 @@ public class AdminController : ControllerBase
     }
 
     [HttpPut("restaurants/{restaurantId}/approve")]
-    public IActionResult ApproveRestaurant(int restaurantId)
+    public async Task<IActionResult> ApproveRestaurantAsync(int restaurantId)
     {
         try
         {
-            _restaurantService.ApproveRestaurantAsync(restaurantId);
+           await _restaurantService.ApproveRestaurantAsync(restaurantId);
             return Ok("✅ Restaurant approved.");
         }
         catch (Exception ex)
@@ -227,11 +272,11 @@ public class AdminController : ControllerBase
     }
 
     [HttpPut("restaurants/{restaurantId}/reject")]
-    public IActionResult RejectRestaurant(int restaurantId)
+    public async Task<IActionResult> RejectRestaurant(int restaurantId)
     {
         try
         {
-            _restaurantService.RejectRestaurantAsync(restaurantId);
+            await _restaurantService.RejectRestaurantAsync(restaurantId);
             return Ok("❌ Restaurant rejected.");
         }
         catch (Exception ex)
@@ -245,11 +290,12 @@ public class AdminController : ControllerBase
     [HttpGet("GetAllFoodCategoriesAsync")]
     public async Task<IActionResult> GetAllFoodCategoriesAsync([FromQuery] int page = 1, [FromQuery] string searchQuery = "")
     {
+        var user = _userManager.GetUserId(User);
         try
         {
             int pageSize = 10;
-            var categories = await _foodCategoryService.GetAllCategoriesAsync();
-
+            var categories = await _foodCategoryService.GetAllCategoriesAsync(user);
+                    
             if (!string.IsNullOrEmpty(searchQuery))
             {
                 categories = categories.Where(c => c.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase));
@@ -266,52 +312,78 @@ public class AdminController : ControllerBase
         }
     }
 
+   
     [HttpPost("AddFoodCategory")]
-    public IActionResult AddFoodCategory([FromForm] Models.Models.FoodCategory category)
+    public async Task<IActionResult> AddFoodCategory([FromBody] Models.Models.FoodCategory category)
     {
-        if (category == null) return BadRequest("Invalid category data.");
+        if (category == null)
+            return BadRequest(new { Success = false, Message = "Invalid category data." });
 
         try
         {
-            _foodCategoryService.CreateCategoryAsync(category);
-            return CreatedAtAction(nameof(GetAllFoodCategoriesAsync), new { id = category.CategoryID }, category);
+            var user = _userManager.GetUserId(User);
+            category.UserId = user;
+
+            await _foodCategoryService.CreateCategoryAsync(category);
+            await _hubContext.Clients.All.SendAsync("CategoryAdded", category);
+
+            return Ok(new { Success = true, Message = "Category created successfully", Category = category });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, $"❌ Error: {ex.Message}");
+            return StatusCode(500, new { Success = false, Message = ex.Message });
         }
     }
 
     [HttpPut("UpdateFoodCategory/{categoryId}")]
-    public IActionResult UpdateFoodCategory(int categoryId, [FromForm] Models.Models.FoodCategory category)
+    public async Task<IActionResult> UpdateFoodCategory(int categoryId, Models.Models.FoodCategory category)
     {
         if (category == null || category.CategoryID != categoryId)
-            return BadRequest("Invalid category ID.");
+            return BadRequest(new { Success = false, Message = "Invalid category ID." });
 
         try
         {
-            _foodCategoryService.UpdateCategoryAsync(categoryId, category);
-            return NoContent();
+            var user = _userManager.GetUserId(User);
+            category.UserId = user;
+
+            await _foodCategoryService.UpdateCategoryAsync(categoryId, category);
+            await _hubContext.Clients.All.SendAsync("CategoryUpdated", category);
+
+            return Ok(new
+            {
+                Success = true,
+                Message = "Category updated successfully",
+                Category = category
+            });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, $"❌ Error: {ex.Message}");
+            return StatusCode(500, new { Success = false, Message = ex.Message });
         }
     }
-
     [HttpDelete("DeleteFoodCategory/{categoryId}")]
-    public IActionResult DeleteFoodCategory(int categoryId)
+    public async Task<IActionResult> DeleteFoodCategory(int categoryId)
     {
+        if (categoryId <= 0)
+            return BadRequest(new { Success = false, Message = "Invalid category ID." });
+
         try
         {
-            _foodCategoryService.DeleteCategoryAsync(categoryId);
-            return NoContent();
+            var category = await _foodCategoryService.GetCategoryByIdAsync(categoryId);
+            if (category == null)
+                return NotFound(new { Success = false, Message = "Category not found." });
+
+            await _foodCategoryService.DeleteCategoryAsync(categoryId);
+            await _hubContext.Clients.All.SendAsync("CategoryDeleted", categoryId);
+
+            return Ok(new { Success = true, Message = "Category deleted successfully." });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, $"❌ Error: {ex.Message}");
+            return StatusCode(500, new { Success = false, Message = ex.Message });
         }
     }
+
     [HttpGet("GetAllOrders")]
     public async Task<IActionResult> GetAllOrders(int RestaurantId, [FromQuery] Models.Models.OrderStatus? status, [FromQuery] int page = 1)
     {

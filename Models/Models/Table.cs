@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using AutoMapper.Configuration.Annotations;
+using System.Text.Json.Serialization;
 
 namespace Models.Models
 {
@@ -20,10 +21,10 @@ namespace Models.Models
 
         [Required]
         public bool IsAvailable { get; set; } = true;
-
+        [Required]
         public int RestaurantId { get; set; }
         [ValidateNever]
-        [Ignore]
+        [JsonIgnore]
         public Restaurant? Restaurant { get; set; }
        
     }

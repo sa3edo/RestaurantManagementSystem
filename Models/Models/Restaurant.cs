@@ -15,9 +15,13 @@ namespace Models.Models
     {
         [Key]
         public int RestaurantID { get; set; }
+        [Required]
         public string Name { get; set; } = string.Empty;
+        [Required]
         public string Description { get; set; } = string.Empty;
+        [Required]
         public string Location { get; set; } = string.Empty;
+       
         public string? ManagerID { get; set; }
         public string? ImgUrl { get; set; }
         [ValidateNever]

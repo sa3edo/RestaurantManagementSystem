@@ -14,10 +14,15 @@ namespace Models.Models
     {
         [Key]
         public int MenuItemID { get; set; }
+        [Required]
         public int RestaurantID { get; set; }
+        [Required]
         public int CategoryID { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
+        [Required]
+        public string Name { get; set; }
+        [Required]
+        public string Description { get; set; }
+        [Required]
         public decimal Price { get; set; }
         public string? ImgUrl { get; set; }
         public bool Availability { get; set; } = true;

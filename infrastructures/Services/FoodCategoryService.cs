@@ -6,6 +6,7 @@ using RestaurantManagementSystem.Repository.IRepository;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,8 +21,12 @@ namespace infrastructures.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<IEnumerable<FoodCategory>> GetAllCategoriesAsync() =>
-            await _unitOfWork.foodCategory.GetAsync();
+        public async Task<IEnumerable<FoodCategory>> GetAllCategoriesAsync(string UserId = " ")
+        {
+            return !string.IsNullOrWhiteSpace(UserId)
+               ? await _unitOfWork.foodCategory.GetAsync(expression: e => e.UserId == UserId)
+               : await _unitOfWork.foodCategory.GetAsync();
+        }
 
         public async Task<FoodCategory?> GetCategoryByIdAsync(int categoryId) =>
             await _unitOfWork.foodCategory.GetOneAsync(expression: c => c.CategoryID == categoryId);
@@ -38,7 +43,9 @@ namespace infrastructures.Services
             var existingCategory = await _unitOfWork.foodCategory.GetOneAsync(expression: c => c.CategoryID == categoryId);
             if (existingCategory == null) return null;
 
+
             existingCategory.Name = category.Name;
+            existingCategory.UserId = category.UserId;
             _unitOfWork.foodCategory.Edit(existingCategory);
             await _unitOfWork.CompleteAsync();
             return existingCategory;

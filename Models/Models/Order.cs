@@ -10,10 +10,12 @@ namespace Models.Models
     {
         [Key]
         public int OrderID { get; set; }
+        [Required]
         public int UserID { get; set; }
         [ValidateNever]
         [Ignore]
         public ApplicationUser? Customer { get; set; }
+        [Required]
         public int RestaurantID { get; set; }
         [ValidateNever]
         [Ignore]

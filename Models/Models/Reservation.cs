@@ -12,19 +12,19 @@ namespace Models.Models
     {
         [Key]
         public int ReservationID { get; set; }
-
-        public string UserID { get; set; } = string.Empty;
+        [Required]
+        public string UserID { get; set; }
         [ValidateNever]
         public ApplicationUser? Customer { get; set; }
-
+        [Required]
         public int RestaurantID { get; set; }
         [ValidateNever]
         public Restaurant? Restaurant { get; set; }
-
+        [Required]
         public int TimeSlotID { get; set; }
         [ValidateNever]
         public TimeSlot? TimeSlot { get; set; }
-
+        [Required]
         public int TableId { get; set; }
 
         [ValidateNever]

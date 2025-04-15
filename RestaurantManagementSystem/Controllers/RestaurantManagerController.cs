@@ -13,6 +13,7 @@ using RestaurantManagementSystem.Models;
 using Utility.SignalR;
 using RestaurantManagementSystem.Utility;
 using infrastructures.Repository;
+using infrastructures.Services;
 
 [Route("api/restaurant-manager")]
 [ApiController]
@@ -27,6 +28,7 @@ public class RestaurantManagerController : ControllerBase
     private readonly IHubContext<AdminHub> _hubContext;
     private readonly ITimeSlotService _timeSlotService;
     private readonly ITableService _tableService;
+    private readonly IFoodCategoryService _foodCategoryService;
 
     public RestaurantManagerController(
         IMenuItemService menuItemService,
@@ -36,7 +38,8 @@ public class RestaurantManagerController : ControllerBase
         IRestaurantService restaurantService,
         IHubContext<AdminHub> hubContext,
         ITimeSlotService timeSlotService,
-        ITableService tableService
+        ITableService tableService,
+        IFoodCategoryService foodCategoryService
         )
     {
         _menuItemService = menuItemService;
@@ -47,6 +50,7 @@ public class RestaurantManagerController : ControllerBase
         _hubContext = hubContext;
         _timeSlotService = timeSlotService;
         _tableService = tableService;
+        _foodCategoryService = foodCategoryService;
     }
 
     // ------------------------ Restaurant Management ------------------------
@@ -89,7 +93,7 @@ public class RestaurantManagerController : ControllerBase
         }
     }
 
-    [HttpPost("CreateRestaurant")]
+    [HttpPost("CreateMangerRestaurant")]
     public async Task<IActionResult> CreateRestaurant([FromForm] Models.Models.Restaurant restaurant, IFormFile? RestImg)
     {
         try
@@ -109,7 +113,7 @@ public class RestaurantManagerController : ControllerBase
             return StatusCode(500, $"❌ Error: {ex.Message}");
         }
     }
-    [HttpPut("UpdateRestaurant")]
+    [HttpPut("UpdateMangerRestaurant")]
     public async Task<IActionResult> UpdateRestaurant(int restaurantId, [FromForm] Models.Models.Restaurant restaurant, IFormFile? RestImg)
     {
         try
@@ -129,7 +133,7 @@ public class RestaurantManagerController : ControllerBase
             return StatusCode(500, new { Message = "An error occurred while updating the restaurant.", Error = ex.Message });
         }
     }
-    [HttpDelete("DeleteRestaurant/{restaurantId}")]
+    [HttpDelete("DeleteMangerRestaurant/{restaurantId}")]
     public async Task<IActionResult> DeleteRestaurant(int restaurantId)
     {
         try
@@ -232,7 +236,7 @@ public class RestaurantManagerController : ControllerBase
     // ------------------------ Order Management ------------------------
 
     [HttpPut("orders/{orderId}/UpdateOrderStatus")]
-    public async Task<IActionResult> UpdateOrderStatus(int orderId, [FromForm] OrderStatus newStatus)
+    public async Task<IActionResult> UpdateOrderStatus(int orderId,OrderStatus newStatus)
     {
         try
         {
@@ -323,7 +327,7 @@ public class RestaurantManagerController : ControllerBase
     }
 
     [HttpPost("CreateTimeSlot")]
-    public async Task<IActionResult> CreateTimeSlot(int restaurantId, [FromForm] Models.Models.TimeSlot timeSlot)
+    public async Task<IActionResult> CreateTimeSlot(int restaurantId, Models.Models.TimeSlot timeSlot)
     {
         try
         {
@@ -375,7 +379,7 @@ public class RestaurantManagerController : ControllerBase
     }
 
     [HttpPost("CreateTable")]
-    public async Task<IActionResult> CreateTable(int restaurantId, [FromForm] Models.Models.Table table)
+    public async Task<IActionResult> CreateTable(int restaurantId, Models.Models.Table table)
     {
         try
         {
@@ -390,7 +394,7 @@ public class RestaurantManagerController : ControllerBase
     }
 
     [HttpPut("UpdateTable/{tableId}")]
-    public async Task<IActionResult> UpdateTable(int tableId, [FromForm] Models.Models.Table table)
+    public async Task<IActionResult> UpdateTable(int tableId, Models.Models.Table table)
     {
         try
         {
@@ -422,6 +426,102 @@ public class RestaurantManagerController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, new { Message = "An error occurred while deleting the table.", Error = ex.Message });
+        }
+
+
+    }
+    // ------------------------ Food Category Management ------------------------
+
+    [HttpGet("GetAllMangerFoodCategoriesAsync")]
+    public async Task<IActionResult> GetAllFoodCategoriesAsync([FromQuery] int page = 1, [FromQuery] string searchQuery = "")
+    {
+        var user = _userManager.GetUserId(User);
+        try
+        {
+            int pageSize = 10;
+            var categories = await _foodCategoryService.GetAllCategoriesAsync(user);
+
+            if (!string.IsNullOrEmpty(searchQuery))
+            {
+                categories = categories.Where(c => c.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase));
+            }
+
+            int totalCount = categories.Count();
+            var paginatedCategories = categories.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            return Ok(new { TotalCount = totalCount, Page = page, PageSize = pageSize, Data = paginatedCategories });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"❌ Error: {ex.Message}");
+        }
+    }
+
+    [HttpPost("AddMangerFoodCategory")]
+    public async Task<IActionResult> AddFoodCategoryAsync(Models.Models.FoodCategory category)
+    {
+        if (category == null) return BadRequest("Invalid category data.");
+
+        try
+        {
+            var user = _userManager.GetUserId(User);
+            category.UserId = user;
+            await _foodCategoryService.CreateCategoryAsync(category);
+            await _hubContext.Clients.All.SendAsync("CategoryAdded", category);
+            return Ok(new { Success = true, Message = "Category created successfully", Category = category });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"❌ Error: {ex.Message}");
+        }
+    }
+
+    [HttpPut("UpdateMangerFoodCategory/{categoryId}")]
+    public async Task<IActionResult> UpdateFoodCategory(int categoryId, Models.Models.FoodCategory category)
+    {
+        if (category == null || category.CategoryID != categoryId)
+            return BadRequest(new { Success = false, Message = "Invalid category ID." });
+
+        try
+        {
+            var user = _userManager.GetUserId(User);
+            category.UserId = user;
+
+            await _foodCategoryService.UpdateCategoryAsync(categoryId, category);
+            await _hubContext.Clients.All.SendAsync("CategoryUpdated", category);
+
+            return Ok(new
+            {
+                Success = true,
+                Message = "Category updated successfully",
+                Category = category
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Success = false, Message = ex.Message });
+        }
+    }
+    [HttpDelete("DeleteMangerFoodCategory/{categoryId}")]
+    public async Task<IActionResult> DeleteFoodCategory(int categoryId)
+    {
+        if (categoryId <= 0)
+            return BadRequest(new { Success = false, Message = "Invalid category ID." });
+
+        try
+        {
+            var category = await _foodCategoryService.GetCategoryByIdAsync(categoryId);
+            if (category == null)
+                return NotFound(new { Success = false, Message = "Category not found." });
+
+            await _foodCategoryService.DeleteCategoryAsync(categoryId);
+            await _hubContext.Clients.All.SendAsync("CategoryDeleted", categoryId);
+
+            return Ok(new { Success = true, Message = "Category deleted successfully." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Success = false, Message = ex.Message });
         }
     }
 

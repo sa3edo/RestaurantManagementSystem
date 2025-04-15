@@ -20,9 +20,9 @@ namespace Models.Models
         [JsonIgnore]
         public Restaurant? Restaurant { get; set; }
         [Required]
-        public DateTime StartTime { get; set; }
+        public TimeOnly StartTime { get; set; }
         [Required]
-        public DateTime EndTime { get; set; }
+        public TimeOnly EndTime { get; set; }
         public bool IsAvailable { get; set; } = true;
         [ValidateNever]
         [JsonIgnore]

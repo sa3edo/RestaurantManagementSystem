@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using RestaurantManagementSystem.Repository.IRepository;
 using System;
 using System.Collections.Generic;

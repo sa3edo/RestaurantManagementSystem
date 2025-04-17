@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Models.Models
@@ -15,14 +16,14 @@ namespace Models.Models
         [Key]
         public int ReviewID { get; set; }
         [Required]
-        public int UserID { get; set; }
+        public string UserID { get; set; }
         [ValidateNever]
-        [Ignore]
+        [JsonIgnore]
         public ApplicationUser? Customer { get; set; }
         [Required]
         public int RestaurantID { get; set; }
         [ValidateNever]
-        [Ignore]
+        [JsonIgnore]
         public Restaurant? Restaurant { get; set; }
         [Required]
         public int Rating { get; set; }

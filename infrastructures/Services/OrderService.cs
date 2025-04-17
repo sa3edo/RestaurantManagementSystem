@@ -60,5 +60,9 @@ namespace infrastructures.Services
 
             return true;
         }
+
+        public async Task<IEnumerable<Order>> GetUserOrders(string UserId = "") =>
+            await _unitOfWork.order.GetAsync(expression: e => e.UserID == UserId);
+       
     }
 }

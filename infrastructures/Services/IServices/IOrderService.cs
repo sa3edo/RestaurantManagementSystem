@@ -11,6 +11,7 @@ namespace infrastructures.Services.IServices
     {
         Task<IEnumerable<Order>> GetAllOrdersAsync(int RestaurantId);
         Task<Order?> GetOrderByIdAsync(int orderId);
+        Task<IEnumerable<Order>> GetUserOrders(string UserId="");
         Task<Order> CreateOrderAsync(Order order);
         Task<Order?> UpdateOrderStatusAsync(int orderId, OrderStatus status);
         Task<Order?> UpdateOrderAsync(Order order);

@@ -25,6 +25,7 @@ namespace Models.Models
         [BindNever]      
         public string? ManagerID { get; set; }
         [ValidateNever]
+        [JsonIgnore]
         public ApplicationUser? User { get; set; }
         public string? ImgUrl { get; set; }
         public RestaurantStatus Status { get; set; } = RestaurantStatus.Pending;

@@ -15,20 +15,24 @@ namespace Models.Models
         [Required]
         public string UserID { get; set; }
         [ValidateNever]
+        [JsonIgnore]
         public ApplicationUser? Customer { get; set; }
         [Required]
         public int RestaurantID { get; set; }
         [ValidateNever]
+        [JsonIgnore]
         public Restaurant? Restaurant { get; set; }
         [Required]
         public int TimeSlotID { get; set; }
         [ValidateNever]
+        [JsonIgnore]
         public TimeSlot? TimeSlot { get; set; }
         [Required]
         public int TableId { get; set; }
 
         [ValidateNever]
         [JsonIgnore]
+
         public Table? Table { get; set; }
 
         [Required]

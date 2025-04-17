@@ -80,7 +80,10 @@ namespace infrastructures.Services
             return reservation;
         }
 
-        
+        public async Task<IEnumerable<Reservation>> GetUserReservations(string UserId = "")
+        {
+            return await _unitOfWork.reservation.GetAsync(expression: e => e.UserID == UserId);
+        }
     }
 
 }

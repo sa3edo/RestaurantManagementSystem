@@ -47,12 +47,13 @@ namespace RestaurantManagementSystem.Controllers
             this.hubContext = hubContext;
         }
 
-        private int GetUserId()
+        private string GetUserId()
         {
-            return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            return User.FindFirstValue(ClaimTypes.NameIdentifier);
         }
+
         [HttpGet("GetAllRestaurant")]
-        public async Task<ActionResult<IEnumerable<MenuItem>>> GetAllRestaurant(string? search = null, int page = 1)
+        public async Task<IActionResult> GetAllRestaurant(string? search = null, int page = 1)
         {
             try
             {
@@ -78,10 +79,31 @@ namespace RestaurantManagementSystem.Controllers
                 return StatusCode(500, new { Message = "An error occurred while retrieving the restaurant.", Error = ex.Message });
             }
         }
+        [HttpGet("GetRestaurantDetails")]
+        public async Task<IActionResult> GetRestaurantDetails(int RestaurantId)
+        {
+            try
+            {
+                var restaurant = await _restaurantService.GetRestaurantByIdAsync(RestaurantId);
+                if (restaurant == null)
+                {
+                    return NotFound(new { Message = $"❌ Restaurant with ID {RestaurantId} not found." });
+                }
 
+                return Ok(restaurant);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    Message = "❌ An error occurred while retrieving the restaurant details.",
+                    Error = ex.Message
+                });
+            }
+        }
 
         [HttpGet("GetRestaurantMenu/{restaurantId}/menu")]
-        public async Task<ActionResult<IEnumerable<MenuItem>>> GetRestaurantMenu(int restaurantId, string? search = null, int page = 1)
+        public async Task<IActionResult> GetRestaurantMenu(int restaurantId, string? search = null, int page = 1)
         {
             try
             {
@@ -104,7 +126,7 @@ namespace RestaurantManagementSystem.Controllers
         }
 
         [HttpPost("CreateOrder")]
-        public async Task<ActionResult<Order>> CreateOrder([FromBody] CreateOrderDto orderDto)
+        public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto orderDto)
         {
             var userId = GetUserId();
             var order = new Order
@@ -151,49 +173,54 @@ namespace RestaurantManagementSystem.Controllers
         }
 
         [HttpGet("orders")]
-        public async Task<ActionResult<IEnumerable<Order>>> GetUserOrders()
+        public async Task<ActionResult> GetUserOrders()
         {
-            int userId = GetUserId();
-            var orders = await _orderService.GetOrderByIdAsync(userId);
+            string userId = GetUserId();
+            var orders = await _orderService.GetUserOrders(userId);
             return Ok(orders);
         }
 
         [HttpDelete("orders/{orderId}")]
         public async Task<IActionResult> CancelOrder(int orderId)
         {
-            int userId = GetUserId();
             var result = await _orderService.CancelOrderAsync(orderId);
             if (!result) return BadRequest("Order cannot be canceled.");
             return NoContent();
         }
 
         [HttpPost("CreateReservation")]
-        public async Task<ActionResult<Reservation>> BookTable([FromBody] Reservation reservation)
+        public async Task<ActionResult> BookTable([FromBody] Reservation reservation)
         {
             reservation.UserID = GetUserId().ToString();
             var newReservation = await _reservationService.CreateReservationAsync(reservation);
             return CreatedAtAction(nameof(BookTable), new { id = newReservation.ReservationID }, newReservation);
         }
-
-        [HttpGet("reservations")]
-        public async Task<ActionResult<IEnumerable<Reservation>>> GetUserReservations()
+        [HttpGet("GetUserReservations")]
+        public async Task<ActionResult> GetUserReservations()
         {
-            int userId = GetUserId();
-            var reservations = await _reservationService.GetReservationByIdAsync(userId);
+            string userId = GetUserId();
+            var reservations = await _reservationService.GetUserReservations(userId);
             return Ok(reservations);
         }
+        [HttpGet("GetReservationById")]
+        public async Task<ActionResult> GetReservationById(int ReservationId)
+        {
+           
+            var reservations = await _reservationService.GetReservationByIdAsync(ReservationId);
+            return Ok(reservations);
+        }
+
 
         [HttpDelete("CancelReservation/{reservationId}")]
         public async Task<IActionResult> CancelReservation(int reservationId)
         {
-            int userId = GetUserId();
             var result = await _reservationService.CancelReservationAsync(reservationId);
             if (!result) return BadRequest("Reservation not found or cannot be canceled.");
             return NoContent();
         }
 
         [HttpPost("CreateReview")]
-        public async Task<ActionResult<Review>> CreateReview([FromBody] Review review)
+        public async Task<ActionResult> CreateReview([FromBody] Review review)
         {
             review.UserID = GetUserId();
             var newReview = await _reviewService.CreateReviewAsync(review);
@@ -201,7 +228,7 @@ namespace RestaurantManagementSystem.Controllers
         }
 
         [HttpGet("GetCategories/{restaurantId}/categories")]
-        public async Task<ActionResult<IEnumerable<FoodCategory>>> GetCategories([FromQuery] int restaurantId)
+        public async Task<ActionResult> GetCategories([FromQuery] int restaurantId)
         {
             if (restaurantId==0)
                 return BadRequest(new { Message = "❌ RestaurantId is required." });
@@ -210,7 +237,7 @@ namespace RestaurantManagementSystem.Controllers
         }
 
         [HttpPost("AddItemToOrder/{orderId}/items")]
-        public async Task<ActionResult<OrderItem>> AddItemToOrder(int orderId, [FromBody] OrderItemDto itemDto)
+        public async Task<ActionResult> AddItemToOrder(int orderId, [FromBody] OrderItemDto itemDto)
         {
             try
             {
@@ -251,7 +278,7 @@ namespace RestaurantManagementSystem.Controllers
         }
 
         [HttpPut("orders/{orderId}/items/{menuItemId}/quantity")]
-        public async Task<ActionResult<OrderItem>> UpdateItemQuantity(int orderId, int menuItemId, [FromBody] int newQuantity)
+        public async Task<ActionResult> UpdateItemQuantity(int orderId, int menuItemId, [FromBody] int newQuantity)
         {
             try
             {

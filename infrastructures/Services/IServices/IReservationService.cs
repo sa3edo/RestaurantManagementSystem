@@ -10,6 +10,7 @@ namespace infrastructures.Services.IServices
     public interface IReservationService
     {
         Task<IEnumerable<Reservation>> GetReservationsByRestaurantAsync(int restaurantId);
+        Task<IEnumerable<Reservation>> GetUserReservations(string UserId="");
         Task<Reservation?> GetReservationByIdAsync(int reservationId);
         Task<Reservation> CreateReservationAsync(Reservation reservation);
         Task<bool> CancelReservationAsync(int reservationId);

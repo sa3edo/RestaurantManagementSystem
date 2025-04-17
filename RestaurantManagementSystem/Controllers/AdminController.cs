@@ -232,6 +232,7 @@ public class AdminController : ControllerBase
             return StatusCode(500, $"❌ Error: {ex.Message}");
         }
     }
+
     [HttpGet("GetAdminRestaurants")]
     public async Task<IActionResult> GetAdminRestaurants([FromQuery] int page = 1, [FromQuery] string searchQuery = "")
     {

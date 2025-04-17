@@ -207,7 +207,29 @@ public class AdminController : ControllerBase
         }
     }
 
-    
+    [HttpGet("GetRestaurantDetails")]
+    public async Task<IActionResult> GetRestaurantDetails(int RestaurantId)
+    {
+        try
+        {
+            var restaurant = await _restaurantService.GetRestaurantByIdAsync(RestaurantId);
+            if (restaurant == null)
+            {
+                return NotFound(new { Message = $"❌ Restaurant with ID {RestaurantId} not found." });
+            }
+
+            return Ok(restaurant);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                Message = "❌ An error occurred while retrieving the restaurant details.",
+                Error = ex.Message
+            });
+        }
+    }
+
     [HttpGet("GetAllRestaurants")]
     public async Task<IActionResult> GetAllRestaurants([FromQuery] int page = 1, [FromQuery] string searchQuery = "")
     {

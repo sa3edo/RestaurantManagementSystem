@@ -93,6 +93,28 @@ public class RestaurantManagerController : ControllerBase
             return StatusCode(500, new { Message = "An error occurred while retrieving the restaurant.", Error = ex.Message });
         }
     }
+    [HttpGet("GetRestaurantDetails")]
+    public async Task<IActionResult> GetRestaurantDetails(int RestaurantId)
+    {
+        try
+        {
+            var restaurant = await _restaurantService.GetRestaurantByIdAsync(RestaurantId);
+            if (restaurant == null)
+            {
+                return NotFound(new { Message = $"❌ Restaurant with ID {RestaurantId} not found." });
+            }
+
+            return Ok(restaurant);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                Message = "❌ An error occurred while retrieving the restaurant details.",
+                Error = ex.Message
+            });
+        }
+    }
 
     [HttpPost("CreateMangerRestaurant")]
     public async Task<IActionResult> CreateRestaurant([FromForm] Models.Models.Restaurant restaurant, IFormFile? RestImg)

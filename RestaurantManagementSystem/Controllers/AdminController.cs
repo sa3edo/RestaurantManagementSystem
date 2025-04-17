@@ -207,7 +207,7 @@ public class AdminController : ControllerBase
         }
     }
 
-
+    
     [HttpGet("GetAllRestaurants")]
     public async Task<IActionResult> GetAllRestaurants([FromQuery] int page = 1, [FromQuery] string searchQuery = "")
     {
@@ -262,11 +262,12 @@ public class AdminController : ControllerBase
     }
 
     [HttpPost("CreateAdminRestaurant")]
-    public async Task<IActionResult> CreateRestaurant([FromForm] string email, [FromForm] Models.Models.Restaurant restaurant, IFormFile? RestImg)
+    public async Task<IActionResult> CreateAdminRestaurant([FromForm] string email, [FromForm] Models.Models.Restaurant restaurant, IFormFile? RestImg)
     {
+        var user = await _userManager.FindByEmailAsync(email);
         try
         {
-            var user = await _userManager.FindByEmailAsync(email);
+            
             if (user == null)
                 return NotFound(new { Message = $"❌ User with email '{email}' not found." });
 
@@ -284,15 +285,14 @@ public class AdminController : ControllerBase
         }
     }
     [HttpPut("UpdateAdminRestaurant")]
-    public async Task<IActionResult> UpdateRestaurant(
-        [FromForm] string? email,
+    public async Task<IActionResult> UpdateAdminRestaurant(
+        [FromForm] string email,
         int restaurantId,
         [FromForm] Models.Models.Restaurant restaurant,
         IFormFile? RestImg)
     {
         try
         {
-            // نحاول نجيب المطعم من الداتا بيز عشان نحتفظ بالقيم القديمة لو احتجناها
             var existingRestaurant = await _restaurantService.GetRestaurantByIdAsync(restaurantId);
             if (existingRestaurant == null)
                 return NotFound(new { Message = $"❌ Restaurant with ID {restaurantId} not found." });
@@ -302,7 +302,6 @@ public class AdminController : ControllerBase
                 var user = await _userManager.FindByEmailAsync(email);
                 if (user == null)
                     return NotFound(new { Message = $"❌ User with email '{email}' not found." });
-
                 restaurant.ManagerID = user.Id;
             }
             else

@@ -55,6 +55,7 @@ public class RestaurantManagerController : ControllerBase
 
     // ------------------------ Restaurant Management ------------------------
     
+
     [HttpGet("GetRestaurant")]
     public async Task<IActionResult> GetRestaurant([FromQuery] string? search, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {

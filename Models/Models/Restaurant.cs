@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using AutoMapper.Configuration.Annotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using RestaurantManagementSystem.Models;
 
@@ -21,11 +22,11 @@ namespace Models.Models
         public string Description { get; set; } = string.Empty;
         [Required]
         public string Location { get; set; } = string.Empty;
-       
+        [BindNever]      
         public string? ManagerID { get; set; }
-        public string? ImgUrl { get; set; }
         [ValidateNever]
         public ApplicationUser? User { get; set; }
+        public string? ImgUrl { get; set; }
         public RestaurantStatus Status { get; set; } = RestaurantStatus.Pending;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         [ValidateNever]

@@ -5,6 +5,7 @@ using RestaurantManagementSystem.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -16,15 +17,15 @@ namespace Models.Models
     {
         [Key]
         public int CategoryID { get; set; }
+
         [Required]
         public string Name { get; set; } = string.Empty;
-        
-        public string UserId { get; set; } = string.Empty;
+
+        public int RestaurantId { get; set; }
         [ValidateNever]
         [JsonIgnore]
-        public ApplicationUser? applicationUser { get; set; }
-
-
+        public Restaurant? Restaurant { get; set; }
     }
+
 
 }

@@ -29,13 +29,37 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(builder);
 
+        builder.Entity<Reservation>()
+            .HasOne(r => r.Restaurant)
+            .WithMany(r => r.Reservations)
+            .HasForeignKey(r => r.RestaurantID)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        
+        builder.Entity<TimeSlot>()
+            .HasOne(ts => ts.Restaurant)
+            .WithMany(r => r.TimeSlot)
+            .HasForeignKey(ts => ts.RestaurantID)
+            .OnDelete(DeleteBehavior.Restrict); 
+
+        builder.Entity<FoodCategory>()
+           .HasOne(fc => fc.Restaurant)
+           .WithMany(r => r.foodCategories)
+           .HasForeignKey(fc => fc.RestaurantId)
+           .OnDelete(DeleteBehavior.Restrict); 
+
+        
+        builder.Entity<Table>()
+            .HasOne(t => t.Restaurant)
+            .WithMany(r => r.Tables)
+            .HasForeignKey(t => t.RestaurantId)
+            .OnDelete(DeleteBehavior.Restrict); 
 
         builder.Entity<OrderItem>()
             .HasOne(oi => oi.Order)
             .WithMany(o => o.OrderItems)
             .HasForeignKey(oi => oi.OrderID)
-            .OnDelete(DeleteBehavior.NoAction);
-
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<OrderItem>()
             .HasOne(oi => oi.MenuItem)
@@ -43,64 +67,39 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(oi => oi.MenuItemID)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.Entity<Reservation>()
-          .HasOne(r => r.Customer)
-          .WithMany()
-          .HasForeignKey(r => r.UserID)
-
-          .OnDelete(DeleteBehavior.NoAction);
-
-        builder.Entity<Reservation>()
-            .HasOne(r => r.Restaurant)
-            .WithMany(rt => rt.Reservations)
-            .HasForeignKey(r => r.RestaurantID)
-            .OnDelete(DeleteBehavior.NoAction);
-
-
-        builder.Entity<Reservation>()
-            .HasOne(r => r.TimeSlot)
-            .WithMany(ts => ts.Reservations)
-            .HasForeignKey(r => r.TimeSlotID)
-            .OnDelete(DeleteBehavior.NoAction);
-
-
-        builder.Entity<TimeSlot>()
-            .HasOne(ts => ts.Restaurant)
-            .WithMany(r => r.TimeSlot)
-            .HasForeignKey(ts => ts.RestaurantID)
+        builder.Entity<Restaurant>()
+            .HasOne(oi => oi.User)
+            .WithMany(o => o.Restaurants)
+            .HasForeignKey(oi => oi.ManagerID)
             .OnDelete(DeleteBehavior.Cascade);
 
-
-        builder.Entity<Restaurant>()
-            .Ignore(r => r.User);
+        builder.Entity<ApplicationUser>()
+            .HasIndex(u => u.UserName)
+            .IsUnique(false);
 
         builder.Entity<ApplicationUser>()
-         .HasIndex(u => u.UserName)
-         .IsUnique(false);
-        builder.Entity<ApplicationUser>()
-        .HasIndex(u => u.NormalizedUserName)
-        .IsUnique(false);
+            .HasIndex(u => u.NormalizedUserName)
+            .IsUnique(false);
 
         builder.Entity<IdentityUser>()
-        .HasIndex(u => u.Email)
-        .IsUnique(true);
+            .HasIndex(u => u.Email)
+            .IsUnique(true);
 
         builder.Entity<IdentityUser>()
-       .HasIndex(u => u.NormalizedUserName)
-       .IsUnique(false);
-
+            .HasIndex(u => u.NormalizedUserName)
+            .IsUnique(false);
 
         builder.Entity<ChatMessage>()
             .HasOne(c => c.Sender)
-            .WithMany()  
+            .WithMany()
             .HasForeignKey(c => c.SenderId)
             .OnDelete(DeleteBehavior.Restrict);
+
         builder.Entity<ChatMessage>()
             .HasOne(c => c.Receiver)
-            .WithMany() 
+            .WithMany()
             .HasForeignKey(c => c.ReceiverId)
-            .OnDelete(DeleteBehavior.Restrict); 
-
+            .OnDelete(DeleteBehavior.Restrict);
     }
 
 }

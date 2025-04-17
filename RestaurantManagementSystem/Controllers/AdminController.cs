@@ -208,8 +208,6 @@ public class AdminController : ControllerBase
     }
 
 
-
-
     [HttpGet("GetAllRestaurants")]
     public async Task<IActionResult> GetAllRestaurants([FromQuery] int page = 1, [FromQuery] string searchQuery = "")
     {
@@ -234,21 +232,27 @@ public class AdminController : ControllerBase
             return StatusCode(500, $"❌ Error: {ex.Message}");
         }
     }
-
-    [HttpPost("CreateAdminRestaurant")]
-    public async Task<IActionResult> CreateRestaurant([FromForm] Models.Models.Restaurant restaurant, IFormFile? RestImg)
+    [HttpGet("GetAdminRestaurants")]
+    public async Task<IActionResult> GetAdminRestaurants([FromQuery] int page = 1, [FromQuery] string searchQuery = "")
     {
         try
         {
+            int pageSize = 10;
             var userManagerId = _userManager.GetUserId(User);
             if (userManagerId == null)
                 return Unauthorized(new { Message = "Unauthorized access." });
+            var restaurants = await _restaurantService.GetAllRestaurantsAsync(userManagerId);
 
-            restaurant.ManagerID = userManagerId;
-            restaurant.Status = (RestaurantStatus)ReservationStatus.Confirmed;
-            await _restaurantService.CreateRestaurantAsync(restaurant, RestImg);
-            await _hubContext.Clients.All.SendAsync("ReceiveUpdate", "RestaurantAdded", restaurant);
-            return NoContent();
+            if (!string.IsNullOrEmpty(searchQuery))
+            {
+                restaurants = restaurants.Where(r => r.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                                                     r.Location.Contains(searchQuery, StringComparison.OrdinalIgnoreCase));
+            }
+
+            int totalCount = restaurants.Count();
+            var paginatedRestaurants = restaurants.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            return Ok(new { TotalCount = totalCount, Page = page, PageSize = pageSize, Data = paginatedRestaurants });
         }
         catch (Exception ex)
         {
@@ -256,17 +260,55 @@ public class AdminController : ControllerBase
         }
     }
 
-
-    [HttpPut("UpdateAdminRestaurant")]
-    public async Task<IActionResult> UpdateRestaurant(int restaurantId, [FromForm]Models.Models.Restaurant restaurant, IFormFile? RestImg)
+    [HttpPost("CreateAdminRestaurant")]
+    public async Task<IActionResult> CreateRestaurant([FromForm] string email, [FromForm] Models.Models.Restaurant restaurant, IFormFile? RestImg)
     {
         try
         {
-            var userManagerId = _userManager.GetUserId(User);
-            if (userManagerId == null)
-                return Unauthorized(new { Message = "Unauthorized access." });
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+                return NotFound(new { Message = $"❌ User with email '{email}' not found." });
 
-            restaurant.ManagerID = userManagerId;
+            restaurant.ManagerID = user.Id;
+            restaurant.Status = (RestaurantStatus)ReservationStatus.Confirmed;
+
+            await _restaurantService.CreateRestaurantAsync(restaurant, RestImg);
+            await _hubContext.Clients.All.SendAsync("ReceiveUpdate", "RestaurantAdded", restaurant);
+
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"❌ Error: {ex.Message}");
+        }
+    }
+    [HttpPut("UpdateAdminRestaurant")]
+    public async Task<IActionResult> UpdateRestaurant(
+        [FromForm] string? email,
+        int restaurantId,
+        [FromForm] Models.Models.Restaurant restaurant,
+        IFormFile? RestImg)
+    {
+        try
+        {
+            // نحاول نجيب المطعم من الداتا بيز عشان نحتفظ بالقيم القديمة لو احتجناها
+            var existingRestaurant = await _restaurantService.GetRestaurantByIdAsync(restaurantId);
+            if (existingRestaurant == null)
+                return NotFound(new { Message = $"❌ Restaurant with ID {restaurantId} not found." });
+
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                var user = await _userManager.FindByEmailAsync(email);
+                if (user == null)
+                    return NotFound(new { Message = $"❌ User with email '{email}' not found." });
+
+                restaurant.ManagerID = user.Id;
+            }
+            else
+            {
+                restaurant.ManagerID = existingRestaurant.ManagerID;
+            }
+
             await _restaurantService.UpdateRestaurantAsync(restaurantId, restaurant, RestImg);
             await _hubContext.Clients.All.SendAsync("ReceiveUpdate", "RestaurantUpdated", restaurant);
 
@@ -274,7 +316,7 @@ public class AdminController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { Message = "An error occurred while updating the restaurant.", Error = ex.Message });
+            return StatusCode(500, new { Message = "❌ An error occurred while updating the restaurant.", Error = ex.Message });
         }
     }
 
@@ -335,23 +377,37 @@ public class AdminController : ControllerBase
     // ------------------------ Food Category Management ------------------------
 
     [HttpGet("GetAllFoodCategoriesAsync")]
-    public async Task<IActionResult> GetAllFoodCategoriesAsync([FromQuery] int page = 1, [FromQuery] string searchQuery = "")
+    public async Task<IActionResult> GetAllFoodCategoriesAsync(
+     [FromQuery] int restaurantId,
+     [FromQuery] int page = 1,
+     [FromQuery] string searchQuery = "")
     {
-        var user = _userManager.GetUserId(User);
         try
         {
+            if (restaurantId==0)
+                return BadRequest(new { Message = "❌ RestaurantId is required." });
+
             int pageSize = 10;
-            var categories = await _foodCategoryService.GetAllCategoriesAsync(user);
-                    
+            var categories = await _foodCategoryService.GetAllCategoriesAsync(restaurantId);
+
             if (!string.IsNullOrEmpty(searchQuery))
             {
                 categories = categories.Where(c => c.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase));
             }
 
             int totalCount = categories.Count();
-            var paginatedCategories = categories.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+            var paginatedCategories = categories
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
 
-            return Ok(new { TotalCount = totalCount, Page = page, PageSize = pageSize, Data = paginatedCategories });
+            return Ok(new
+            {
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize,
+                Data = paginatedCategories
+            });
         }
         catch (Exception ex)
         {
@@ -359,22 +415,30 @@ public class AdminController : ControllerBase
         }
     }
 
-   
     [HttpPost("AddFoodCategory")]
-    public async Task<IActionResult> AddFoodCategory([FromBody] Models.Models.FoodCategory category)
+    public async Task<IActionResult> AddFoodCategory(
+        [FromBody] Models.Models.FoodCategory category,
+        [FromQuery] int restaurantId)
     {
         if (category == null)
             return BadRequest(new { Success = false, Message = "Invalid category data." });
 
         try
         {
-            var user = _userManager.GetUserId(User);
-            category.UserId = user;
+            if (restaurantId==0)
+                return BadRequest(new { Success = false, Message = "❌ RestaurantId is required." });
+
+            category.RestaurantId = restaurantId;
 
             await _foodCategoryService.CreateCategoryAsync(category);
             await _hubContext.Clients.All.SendAsync("CategoryAdded", category);
 
-            return Ok(new { Success = true, Message = "Category created successfully", Category = category });
+            return Ok(new
+            {
+                Success = true,
+                Message = "Category created successfully",
+                Category = category
+            });
         }
         catch (Exception ex)
         {
@@ -383,15 +447,18 @@ public class AdminController : ControllerBase
     }
 
     [HttpPut("UpdateFoodCategory/{categoryId}")]
-    public async Task<IActionResult> UpdateFoodCategory(int categoryId, Models.Models.FoodCategory category)
+    public async Task<IActionResult> UpdateFoodCategory(
+        int categoryId,
+        [FromBody] Models.Models.FoodCategory category,
+        [FromQuery] int restaurantId)
     {
         if (category == null || category.CategoryID != categoryId)
             return BadRequest(new { Success = false, Message = "Invalid category ID." });
 
         try
         {
-            var user = _userManager.GetUserId(User);
-            category.UserId = user;
+            if (restaurantId!=0)
+                category.RestaurantId = restaurantId;
 
             await _foodCategoryService.UpdateCategoryAsync(categoryId, category);
             await _hubContext.Clients.All.SendAsync("CategoryUpdated", category);
@@ -408,6 +475,7 @@ public class AdminController : ControllerBase
             return StatusCode(500, new { Success = false, Message = ex.Message });
         }
     }
+
     [HttpDelete("DeleteFoodCategory/{categoryId}")]
     public async Task<IActionResult> DeleteFoodCategory(int categoryId)
     {

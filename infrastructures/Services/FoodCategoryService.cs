@@ -21,12 +21,8 @@ namespace infrastructures.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<IEnumerable<FoodCategory>> GetAllCategoriesAsync(string UserId = " ")
-        {
-            return !string.IsNullOrWhiteSpace(UserId)
-               ? await _unitOfWork.foodCategory.GetAsync(expression: e => e.UserId == UserId)
-               : await _unitOfWork.foodCategory.GetAsync();
-        }
+        public async Task<IEnumerable<FoodCategory>> GetAllCategoriesAsync(int RestaurantId)=>
+            await _unitOfWork.foodCategory.GetAsync(expression: e => e.RestaurantId == RestaurantId);
 
         public async Task<FoodCategory?> GetCategoryByIdAsync(int categoryId) =>
             await _unitOfWork.foodCategory.GetOneAsync(expression: c => c.CategoryID == categoryId);
@@ -45,7 +41,7 @@ namespace infrastructures.Services
 
 
             existingCategory.Name = category.Name;
-            existingCategory.UserId = category.UserId;
+            existingCategory.RestaurantId = category.RestaurantId;
             _unitOfWork.foodCategory.Edit(existingCategory);
             await _unitOfWork.CompleteAsync();
             return existingCategory;

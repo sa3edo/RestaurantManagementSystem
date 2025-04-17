@@ -201,9 +201,11 @@ namespace RestaurantManagementSystem.Controllers
         }
 
         [HttpGet("GetCategories/{restaurantId}/categories")]
-        public async Task<ActionResult<IEnumerable<FoodCategory>>> GetCategories()
+        public async Task<ActionResult<IEnumerable<FoodCategory>>> GetCategories([FromQuery] int restaurantId)
         {
-            var categories = await _foodCategoryService.GetAllCategoriesAsync();
+            if (restaurantId==0)
+                return BadRequest(new { Message = "❌ RestaurantId is required." });
+            var categories = await _foodCategoryService.GetAllCategoriesAsync(restaurantId);
             return Ok(categories);
         }
 

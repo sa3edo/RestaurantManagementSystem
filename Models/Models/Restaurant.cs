@@ -35,6 +35,14 @@ namespace Models.Models
         [JsonIgnore]
         public IEnumerable<TimeSlot> TimeSlot { get; set; }
 
+        [ValidateNever]
+        [JsonIgnore]
+        public IEnumerable<Table> Tables { get; set; }
+
+        [ValidateNever]
+        [JsonIgnore]
+        public IEnumerable<FoodCategory> foodCategories { get; set; }
+
 
     }
 

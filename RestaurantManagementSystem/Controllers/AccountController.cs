@@ -40,7 +40,7 @@ namespace RestaurantManagementSystem.Controllers
             var result = await _accountService.RegisterAsync(userDto);
             return Ok(result);
         }
-
+       
         [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] LoginDto userVm)
         {

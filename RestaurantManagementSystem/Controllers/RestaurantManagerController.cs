@@ -433,13 +433,18 @@ public class RestaurantManagerController : ControllerBase
     // ------------------------ Food Category Management ------------------------
 
     [HttpGet("GetAllMangerFoodCategoriesAsync")]
-    public async Task<IActionResult> GetAllFoodCategoriesAsync([FromQuery] int page = 1, [FromQuery] string searchQuery = "")
+    public async Task<IActionResult> GetAllMangerFoodCategoriesAsync(
+     [FromQuery] int restaurantId,
+     [FromQuery] int page = 1,
+     [FromQuery] string searchQuery = "")
     {
-        var user = _userManager.GetUserId(User);
         try
         {
+            if (restaurantId == 0)
+                return BadRequest(new { Message = "❌ RestaurantId is required." });
+
             int pageSize = 10;
-            var categories = await _foodCategoryService.GetAllCategoriesAsync(user);
+            var categories = await _foodCategoryService.GetAllCategoriesAsync(restaurantId);
 
             if (!string.IsNullOrEmpty(searchQuery))
             {
@@ -447,9 +452,18 @@ public class RestaurantManagerController : ControllerBase
             }
 
             int totalCount = categories.Count();
-            var paginatedCategories = categories.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+            var paginatedCategories = categories
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
 
-            return Ok(new { TotalCount = totalCount, Page = page, PageSize = pageSize, Data = paginatedCategories });
+            return Ok(new
+            {
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize,
+                Data = paginatedCategories
+            });
         }
         catch (Exception ex)
         {
@@ -457,35 +471,52 @@ public class RestaurantManagerController : ControllerBase
         }
     }
 
+
     [HttpPost("AddMangerFoodCategory")]
-    public async Task<IActionResult> AddFoodCategoryAsync(Models.Models.FoodCategory category)
+    public async Task<IActionResult> AddMangerFoodCategory(
+        [FromBody] Models.Models.FoodCategory category,
+        [FromQuery] int restaurantId)
     {
-        if (category == null) return BadRequest("Invalid category data.");
+        if (category == null)
+            return BadRequest(new { Success = false, Message = "Invalid category data." });
 
         try
         {
-            var user = _userManager.GetUserId(User);
-            category.UserId = user;
+            if (restaurantId == 0)
+                return BadRequest(new { Success = false, Message = "❌ RestaurantId is required." });
+
+            category.RestaurantId = restaurantId;
+
             await _foodCategoryService.CreateCategoryAsync(category);
             await _hubContext.Clients.All.SendAsync("CategoryAdded", category);
-            return Ok(new { Success = true, Message = "Category created successfully", Category = category });
+
+            return Ok(new
+            {
+                Success = true,
+                Message = "Category created successfully",
+                Category = category
+            });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, $"❌ Error: {ex.Message}");
+            return StatusCode(500, new { Success = false, Message = ex.Message });
         }
     }
 
+
     [HttpPut("UpdateMangerFoodCategory/{categoryId}")]
-    public async Task<IActionResult> UpdateFoodCategory(int categoryId, Models.Models.FoodCategory category)
+    public async Task<IActionResult> UpdateMangerFoodCategory(
+        int categoryId,
+        [FromBody] Models.Models.FoodCategory category,
+        [FromQuery] int restaurantId)
     {
         if (category == null || category.CategoryID != categoryId)
             return BadRequest(new { Success = false, Message = "Invalid category ID." });
 
         try
         {
-            var user = _userManager.GetUserId(User);
-            category.UserId = user;
+            if (restaurantId != 0)
+                category.RestaurantId = restaurantId;
 
             await _foodCategoryService.UpdateCategoryAsync(categoryId, category);
             await _hubContext.Clients.All.SendAsync("CategoryUpdated", category);

@@ -192,9 +192,18 @@ namespace RestaurantManagementSystem.Controllers
         public async Task<ActionResult> BookTable([FromBody] Reservation reservation)
         {
             reservation.UserID = GetUserId().ToString();
-            var newReservation = await _reservationService.CreateReservationAsync(reservation);
-            return CreatedAtAction(nameof(BookTable), new { id = newReservation.ReservationID }, newReservation);
+
+            try
+            {
+                var newReservation = await _reservationService.CreateReservationAsync(reservation);
+                return CreatedAtAction(nameof(BookTable), new { id = newReservation.ReservationID }, newReservation);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
+
         [HttpGet("GetUserReservations")]
         public async Task<ActionResult> GetUserReservations()
         {
@@ -214,10 +223,27 @@ namespace RestaurantManagementSystem.Controllers
         [HttpDelete("CancelReservation/{reservationId}")]
         public async Task<IActionResult> CancelReservation(int reservationId)
         {
+            var reserve = await _reservationService.GetReservationByIdAsync(reservationId);
+            if (reserve == null)
+                return NotFound("Reservation not found.");
+
+            var today = DateOnly.FromDateTime(DateTime.Now);
+            if (reserve.Status == ReservationStatus.Confirmed &&
+                reserve.ReservationDate >= today &&
+                reserve.ReservationDate <= today.AddDays(1))
+            {
+                return BadRequest("You cannot cancel a confirmed reservation on the same day or one day before.");
+            }
+
             var result = await _reservationService.CancelReservationAsync(reservationId);
-            if (!result) return BadRequest("Reservation not found or cannot be canceled.");
+            if (!result)
+                return BadRequest("Reservation not found or cannot be canceled.");
+
             return NoContent();
         }
+
+
+
 
         [HttpPost("CreateReview")]
         public async Task<ActionResult> CreateReview([FromBody] Review review)

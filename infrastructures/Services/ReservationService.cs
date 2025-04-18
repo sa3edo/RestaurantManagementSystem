@@ -1,7 +1,11 @@
 ﻿using infrastructures.Repository;
 using infrastructures.Services.IServices;
 using infrastructures.UnitOfWork;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.EntityFrameworkCore;
 using Models.Models;
+using RestaurantManagementSystem.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,10 +17,13 @@ namespace infrastructures.Services
     public class ReservationService : IReservationService
     {
         private readonly IUnitOfWork _unitOfWork;
-
-        public ReservationService(IUnitOfWork unitOfWork)
+        private readonly IEmailSender _emailSender;
+        private readonly UserManager<ApplicationUser> _userManager;
+        public ReservationService(IUnitOfWork unitOfWork,IEmailSender emailSender, UserManager<ApplicationUser> userManager)
         {
             _unitOfWork = unitOfWork;
+            _emailSender = emailSender;
+            _userManager = userManager;
         }
 
         public async Task<IEnumerable<Reservation>> GetReservationsByRestaurantAsync(int restaurantId) =>
@@ -24,26 +31,37 @@ namespace infrastructures.Services
 
         public async Task<Reservation?> GetReservationByIdAsync(int reservationId) =>
             await _unitOfWork.reservation.GetOneAsync(expression: r => r.ReservationID == reservationId);
-
-        public async Task<Reservation?> CreateReservationAsync(Reservation reservation)
+        public async Task<Reservation> CreateReservationAsync(Reservation reservation)
         {
-            // Check if there's an existing reservation for the same restaurant, table, date, and time slot
             var existingReservation = await _unitOfWork.reservation.GetOneAsync(expression: r =>
                 r.RestaurantID == reservation.RestaurantID &&
-                r.TableId == reservation.TableId &&  // Ensure the table is not double-booked
-               r.ReservationDate == reservation.ReservationDate &&
-               r.TimeSlotID == reservation.TimeSlotID // Same time slot
+                r.TableId == reservation.TableId &&
+                r.ReservationDate == reservation.ReservationDate &&
+                r.TimeSlotID == reservation.TimeSlotID &&
+                r.Status == ReservationStatus.Confirmed
             );
 
-            
             if (existingReservation != null)
-            {
-                return null;
-            }
+                throw new InvalidOperationException("❌ This table is already reserved for the selected date and time.");
 
-            
             await _unitOfWork.reservation.CreateAsync(reservation);
             await _unitOfWork.CompleteAsync();
+
+            var user = await _userManager.FindByIdAsync(reservation.UserID);
+            if (user != null)
+            {
+                string message = $@"
+            <h3>Reservation Submitted!</h3>
+            <p>Restaurant ID: {reservation.RestaurantID}</p>
+            <p>Table ID: {reservation.TableId}</p>
+            <p>Date: {reservation.ReservationDate:yyyy-MM-dd}</p>
+            <p>Time Slot ID: {reservation.TimeSlotID}</p>
+            <p>Status: {reservation.Status}</p>
+        ";
+
+                await _emailSender.SendEmailAsync(user.Email, "✅ Reservation Submitted", message);
+            }
+
             return reservation;
         }
 
@@ -55,8 +73,20 @@ namespace infrastructures.Services
 
             _unitOfWork.reservation.Delete(reservation);
             await _unitOfWork.CompleteAsync();
+            var user = await _userManager.FindByIdAsync(reservation.UserID);
+            if (user != null)
+            {
+                string message = $@"
+            <h3>Reservation Cancelled</h3>
+            <p>Your reservation for {reservation.ReservationDate:yyyy-MM-dd} has been <b>cancelled</b>.</p>
+            <p>If this was a mistake, feel free to book again.</p>";
+
+                await _emailSender.SendEmailAsync(user.Email, "❌ Reservation Cancelled", message);
+            }
+
             return true;
         }
+
 
         public async Task<Reservation?> ApproveReservationAsync(int reservationId)
         {
@@ -66,6 +96,18 @@ namespace infrastructures.Services
             reservation.Status = ReservationStatus.Confirmed;
             _unitOfWork.reservation.Edit(reservation);
             await _unitOfWork.CompleteAsync();
+
+            var user = await _userManager.FindByIdAsync(reservation.UserID);
+            if (user != null)
+            {
+                string message = $@"
+            <h3>Reservation Approved</h3>
+            <p>Your reservation for {reservation.ReservationDate:yyyy-MM-dd} has been <b>approved</b>.</p>
+            <p>We look forward to seeing you!</p>";
+
+                await _emailSender.SendEmailAsync(user.Email, "✅ Reservation Approved", message);
+            }
+
             return reservation;
         }
 
@@ -77,8 +119,20 @@ namespace infrastructures.Services
             reservation.Status = ReservationStatus.Rejected;
             _unitOfWork.reservation.Edit(reservation);
             await _unitOfWork.CompleteAsync();
+            var user = await _userManager.FindByIdAsync(reservation.UserID);
+            if (user != null)
+            {
+                string message = $@"
+            <h3>Reservation Rejected</h3>
+            <p>We regret to inform you that your reservation for {reservation.ReservationDate:yyyy-MM-dd} was <b>rejected</b>.</p>
+            <p>Please try booking another time slot.</p>";
+
+                await _emailSender.SendEmailAsync(user.Email, "❌ Reservation Rejected", message);
+            }
+
             return reservation;
         }
+
 
         public async Task<IEnumerable<Reservation>> GetUserReservations(string UserId = "")
         {

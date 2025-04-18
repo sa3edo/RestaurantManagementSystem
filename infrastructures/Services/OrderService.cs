@@ -26,7 +26,7 @@ namespace infrastructures.Services
         public async Task<Order> CreateOrderAsync(Order order)
         {
             await _unitOfWork.order.CreateAsync(order);
-            await _unitOfWork.CompleteAsync(); // Save changes after adding
+            await _unitOfWork.CompleteAsync();
             return order;
         }
 
@@ -37,7 +37,7 @@ namespace infrastructures.Services
 
             order.Status = status;
             _unitOfWork.order.Edit(order);
-            await _unitOfWork.CompleteAsync(); // Save changes
+            await _unitOfWork.CompleteAsync();
 
             return order;
         }
@@ -56,7 +56,7 @@ namespace infrastructures.Services
             if (order == null || order.Status != OrderStatus.Pending) return false;
 
             _unitOfWork.order.Delete(order);
-            await _unitOfWork.CompleteAsync(); // Save changes after deleting
+            await _unitOfWork.CompleteAsync();
 
             return true;
         }

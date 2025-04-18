@@ -411,6 +411,7 @@ public class AdminController : ControllerBase
 
             int pageSize = 10;
             var categories = await _foodCategoryService.GetAllCategoriesAsync(restaurantId);
+            
 
             if (!string.IsNullOrEmpty(searchQuery))
             {

@@ -43,7 +43,15 @@ namespace infrastructures.Services
 
             if (existingReservation != null)
                 throw new InvalidOperationException("❌ This table is already reserved for the selected date and time.");
-
+            var exists = await _unitOfWork.reservation.GetOneAsync(expression: r =>
+            r.UserID == reservation.UserID &&
+            r.TableId == reservation.TableId && 
+            r.ReservationDate == reservation.ReservationDate &&
+            r.TimeSlotID == reservation.TimeSlotID);
+            if (exists !=null)
+            {
+                throw new InvalidOperationException("You already have a reservation for this time.");
+            }
             await _unitOfWork.reservation.CreateAsync(reservation);
             await _unitOfWork.CompleteAsync();
 
@@ -92,7 +100,18 @@ namespace infrastructures.Services
         {
             var reservation = await _unitOfWork.reservation.GetOneAsync(expression: r => r.ReservationID == reservationId);
             if (reservation == null) return null;
+            if (reservation.Status != ReservationStatus.Pending)
+                throw new InvalidOperationException("Reservation is already processed.");
+            var isDuplicate = await _unitOfWork.reservation.GetOneAsync(expression: r =>
+        r.ReservationID != reservation.ReservationID && // exclude current
+        r.UserID == reservation.UserID &&
+        r.TableId == reservation.TableId &&
+        r.ReservationDate == reservation.ReservationDate &&
+        r.TimeSlotID == reservation.TimeSlotID &&
+        r.Status == ReservationStatus.Confirmed);
 
+            if (isDuplicate !=null)
+                throw new InvalidOperationException("Another confirmed reservation exists for this time and table.");
             reservation.Status = ReservationStatus.Confirmed;
             _unitOfWork.reservation.Edit(reservation);
             await _unitOfWork.CompleteAsync();
@@ -115,7 +134,8 @@ namespace infrastructures.Services
         {
             var reservation = await _unitOfWork.reservation.GetOneAsync(expression: r => r.ReservationID == reservationId);
             if (reservation == null) return null;
-
+            if (reservation.Status != ReservationStatus.Pending)
+                throw new InvalidOperationException("Reservation is already processed.");
             reservation.Status = ReservationStatus.Rejected;
             _unitOfWork.reservation.Edit(reservation);
             await _unitOfWork.CompleteAsync();

@@ -57,10 +57,12 @@ public class RestaurantManagerController : ControllerBase
     
 
     [HttpGet("GetRestaurant")]
-    public async Task<IActionResult> GetRestaurant([FromQuery] string? search, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+    public async Task<IActionResult> GetRestaurant([FromQuery] string? search, [FromQuery] int pageNumber = 1)
     {
+        int pageSize = 10;
         try
         {
+
             var userManagerId = _userManager.GetUserId(User);
             var restaurants = await _restaurantService.GetAllRestaurantsAsync(userManagerId);
 
@@ -173,8 +175,9 @@ public class RestaurantManagerController : ControllerBase
     // ------------------------ Menu Management ------------------------
 
     [HttpGet("GetMenuItems")]
-    public async Task<IActionResult> GetMenuItems(int restaurantId, string? search = null, int page = 1, int pageSize = 10)
+    public async Task<IActionResult> GetMenuItems(int restaurantId, string? search = null, int page = 1)
     {
+        int pageSize = 10;
         try
         {
             var restaurant = await _restaurantService.GetRestaurantByIdAsync(restaurantId);
@@ -199,7 +202,7 @@ public class RestaurantManagerController : ControllerBase
     }
 
     [HttpPost("CreateMenuItem")]
-    public async Task<IActionResult> CreateMenuItem(int restaurantId, [FromForm] Models.Models.MenuItem menuItem,IFormFile? MenuImg)
+    public async Task<IActionResult> CreateMenuItem(int restaurantId, [FromForm] Models.Models.MenuItem menuItem, IFormFile? MenuImg)
     {
         try
         {
@@ -212,11 +215,22 @@ public class RestaurantManagerController : ControllerBase
 
             return CreatedAtAction(nameof(GetMenuItems), new { id = menuItem.MenuItemID }, menuItem);
         }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
         catch (Exception ex)
         {
-            return StatusCode(500, new { Message = "An error occurred while creating the menu item.", Error = ex.Message });
+            var baseException = ex.GetBaseException().Message;
+            return StatusCode(500, new
+            {
+                Message = "An unexpected error occurred.",
+                Error = baseException
+            });
         }
+
     }
+
     [HttpPut("UpdateMenuItem/{menuItemId}")]
     public async Task<IActionResult> UpdateMenuItem(int menuItemId, [FromForm] Models.Models.MenuItem menuItem, IFormFile? MenuImg)
     {

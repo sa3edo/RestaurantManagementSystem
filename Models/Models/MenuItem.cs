@@ -18,6 +18,9 @@ namespace Models.Models
         public int RestaurantID { get; set; }
         [Required]
         public int CategoryID { get; set; }
+        [ValidateNever]
+        [JsonIgnore]
+        public FoodCategory? Category { get; set; }
         [Required]
         public string Name { get; set; }
         [Required]
@@ -27,11 +30,8 @@ namespace Models.Models
         public string? ImgUrl { get; set; }
         public bool Availability { get; set; } = true;
         [ValidateNever]
-        [Ignore]
+        [JsonIgnore]
         public Restaurant? Restaurant { get; set; }
-        [ValidateNever]
-        [Ignore]
-        public FoodCategory? Category { get; set; }
         [ValidateNever]
         [JsonIgnore]
         public IEnumerable<OrderItem> OrderItems { get; set; }

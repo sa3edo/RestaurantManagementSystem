@@ -30,6 +30,16 @@ namespace infrastructures.Services
 
         public async Task<Models.Models.MenuItem> CreateMenuItemAsync(Models.Models.MenuItem menuItem, IFormFile? menuImg)
         {
+            var isDuplicate = await _unitOfWork.menuItem.GetOneAsync( expression:e =>
+     e.Name.ToLower() == menuItem.Name.ToLower() &&
+     e.Price == menuItem.Price &&
+     e.RestaurantID == menuItem.RestaurantID
+ );
+
+            if (isDuplicate != null)
+                throw new InvalidOperationException("A MenuItem with this name already exists for this restaurant.");
+
+
             if (menuImg != null && menuImg.Length > 0)
             {
                 EnsureImageDirectoryExists();
@@ -49,6 +59,15 @@ namespace infrastructures.Services
         {
             var existingMenuItem = await _unitOfWork.menuItem.GetOneAsync(expression: m => m.MenuItemID == menuItemId, tracked: false);
             if (existingMenuItem == null) return null;
+
+            var isDuplicate = await _unitOfWork.menuItem.GetOneAsync(expression: e => e.MenuItemID != menuItem.MenuItemID &&
+            e.Price == menuItem.Price &&
+            e.Name == menuItem.Name &&
+            e.RestaurantID == menuItem.RestaurantID
+            );
+
+            if (isDuplicate !=null)
+                throw new InvalidOperationException("Another MenuItem with this name already exists.");
 
             if (menuImg != null && menuImg.Length > 0)
             {

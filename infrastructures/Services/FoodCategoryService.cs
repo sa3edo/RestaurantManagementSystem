@@ -29,23 +29,41 @@ namespace infrastructures.Services
 
         public async Task<FoodCategory> CreateCategoryAsync(FoodCategory category)
         {
+            
+            var isDuplicate = await _unitOfWork.foodCategory.GetOneAsync(expression: c =>
+                c.Name.ToLower() == category.Name.ToLower() &&
+                c.RestaurantId == category.RestaurantId);
+
+            if (isDuplicate != null)
+                throw new InvalidOperationException("This category name already exists for the restaurant.");
+
             await _unitOfWork.foodCategory.CreateAsync(category);
             await _unitOfWork.CompleteAsync();
             return category;
         }
+
 
         public async Task<FoodCategory?> UpdateCategoryAsync(int categoryId, FoodCategory category)
         {
             var existingCategory = await _unitOfWork.foodCategory.GetOneAsync(expression: c => c.CategoryID == categoryId);
             if (existingCategory == null) return null;
 
+            var isDuplicate = await _unitOfWork.foodCategory.GetOneAsync(expression: c =>
+                c.CategoryID != categoryId &&
+                c.Name.ToLower() == category.Name.ToLower() &&
+                c.RestaurantId == category.RestaurantId);
+
+            if (isDuplicate != null)
+                throw new InvalidOperationException("Another category with this name already exists for the restaurant.");
 
             existingCategory.Name = category.Name;
             existingCategory.RestaurantId = category.RestaurantId;
+
             _unitOfWork.foodCategory.Edit(existingCategory);
             await _unitOfWork.CompleteAsync();
             return existingCategory;
         }
+
 
         public async Task<bool> DeleteCategoryAsync(int categoryId)
         {

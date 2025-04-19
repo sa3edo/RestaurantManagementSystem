@@ -23,7 +23,7 @@ namespace Models.Models
 
         public int RestaurantId { get; set; }
         [ValidateNever]
-        //[JsonIgnore]
+        [JsonIgnore]
         public Restaurant? Restaurant { get; set; }
     }
 

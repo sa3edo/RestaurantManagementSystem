@@ -11,6 +11,8 @@ namespace RestaurantManagementSystem.Repository.IRepository
         Task CreateAsync(T entity);
         void Edit(T entity);
         void Delete(T entity);
+        void DeleteRange(IEnumerable<T> entities);
+
         Task CommitAsync();
     }
 }

@@ -128,7 +128,7 @@ namespace infrastructures.Migrations
 
                     b.HasIndex("NormalizedUserName");
 
-                    b.ToTable("IdentityUser");
+                    b.ToTable("IdentityUser", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -244,7 +244,7 @@ namespace infrastructures.Migrations
 
                     b.HasIndex("SenderId");
 
-                    b.ToTable("chatMessages");
+                    b.ToTable("chatMessages", (string)null);
                 });
 
             modelBuilder.Entity("Models.Models.FoodCategory", b =>
@@ -266,7 +266,7 @@ namespace infrastructures.Migrations
 
                     b.HasIndex("RestaurantId");
 
-                    b.ToTable("FoodCategories");
+                    b.ToTable("FoodCategories", (string)null);
                 });
 
             modelBuilder.Entity("Models.Models.MenuItem", b =>
@@ -306,7 +306,7 @@ namespace infrastructures.Migrations
 
                     b.HasIndex("RestaurantID");
 
-                    b.ToTable("MenuItems");
+                    b.ToTable("MenuItems", (string)null);
                 });
 
             modelBuilder.Entity("Models.Models.Order", b =>
@@ -342,7 +342,7 @@ namespace infrastructures.Migrations
 
                     b.HasIndex("RestaurantID");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("Models.Models.OrderItem", b =>
@@ -371,7 +371,7 @@ namespace infrastructures.Migrations
 
                     b.HasIndex("OrderID");
 
-                    b.ToTable("OrderItems");
+                    b.ToTable("OrderItems", (string)null);
                 });
 
             modelBuilder.Entity("Models.Models.Reservation", b =>
@@ -417,7 +417,7 @@ namespace infrastructures.Migrations
 
                     b.HasIndex("TimeSlotID");
 
-                    b.ToTable("Reservations");
+                    b.ToTable("Reservations", (string)null);
                 });
 
             modelBuilder.Entity("Models.Models.Restaurant", b =>
@@ -456,7 +456,7 @@ namespace infrastructures.Migrations
 
                     b.HasIndex("ManagerID");
 
-                    b.ToTable("Restaurants");
+                    b.ToTable("Restaurants", (string)null);
                 });
 
             modelBuilder.Entity("Models.Models.Review", b =>
@@ -493,7 +493,7 @@ namespace infrastructures.Migrations
 
                     b.HasIndex("RestaurantID");
 
-                    b.ToTable("Reviews");
+                    b.ToTable("Reviews", (string)null);
                 });
 
             modelBuilder.Entity("Models.Models.Table", b =>
@@ -517,7 +517,7 @@ namespace infrastructures.Migrations
 
                     b.HasIndex("RestaurantId");
 
-                    b.ToTable("Tables");
+                    b.ToTable("Tables", (string)null);
                 });
 
             modelBuilder.Entity("Models.Models.TimeSlot", b =>
@@ -544,7 +544,7 @@ namespace infrastructures.Migrations
 
                     b.HasIndex("RestaurantID");
 
-                    b.ToTable("TimeSlots");
+                    b.ToTable("TimeSlots", (string)null);
                 });
 
             modelBuilder.Entity("RestaurantManagementSystem.Models.ApplicationUser", b =>

@@ -45,6 +45,13 @@ namespace Models.Models
         [JsonIgnore]
         public IEnumerable<FoodCategory> foodCategories { get; set; }
 
+        [ValidateNever]
+        [JsonIgnore]
+        public IEnumerable<Order> Orders { get; set; }
+
+        [ValidateNever]
+        [JsonIgnore]
+        public IEnumerable<MenuItem> MenuItems { get; set; }
 
     }
 

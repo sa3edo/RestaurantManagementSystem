@@ -30,48 +30,41 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         base.OnModelCreating(builder);
 
         builder.Entity<Reservation>()
-            .HasOne(r => r.Restaurant)
-            .WithMany(r => r.Reservations)
-            .HasForeignKey(r => r.RestaurantID)
-            .OnDelete(DeleteBehavior.Restrict);
+    .HasOne(r => r.Restaurant)
+    .WithMany(r => r.Reservations)
+    .HasForeignKey(r => r.RestaurantID)
+    .OnDelete(DeleteBehavior.Cascade);
 
-        
         builder.Entity<TimeSlot>()
             .HasOne(ts => ts.Restaurant)
             .WithMany(r => r.TimeSlot)
             .HasForeignKey(ts => ts.RestaurantID)
-            .OnDelete(DeleteBehavior.Restrict); 
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<FoodCategory>()
            .HasOne(fc => fc.Restaurant)
            .WithMany(r => r.foodCategories)
            .HasForeignKey(fc => fc.RestaurantId)
-           .OnDelete(DeleteBehavior.Restrict); 
+           .OnDelete(DeleteBehavior.Cascade);
 
-        
         builder.Entity<Table>()
             .HasOne(t => t.Restaurant)
             .WithMany(r => r.Tables)
             .HasForeignKey(t => t.RestaurantId)
-            .OnDelete(DeleteBehavior.Restrict); 
-
-        builder.Entity<OrderItem>()
-            .HasOne(oi => oi.Order)
-            .WithMany(o => o.OrderItems)
-            .HasForeignKey(oi => oi.OrderID)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.Entity<OrderItem>()
-            .HasOne(oi => oi.MenuItem)
-            .WithMany(mi => mi.OrderItems)
-            .HasForeignKey(oi => oi.MenuItemID)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        builder.Entity<Restaurant>()
-            .HasOne(oi => oi.User)
-            .WithMany(o => o.Restaurants)
-            .HasForeignKey(oi => oi.ManagerID)
+        builder.Entity<Models.Models.Order>()
+            .HasOne(o => o.Restaurant)
+            .WithMany(r => r.Orders)
+            .HasForeignKey(o => o.RestaurantID)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<MenuItem>()
+            .HasOne(mi => mi.Restaurant)
+            .WithMany(r => r.MenuItems)
+            .HasForeignKey(mi => mi.RestaurantID)
+            .OnDelete(DeleteBehavior.Cascade);
+
 
         builder.Entity<ApplicationUser>()
             .HasIndex(u => u.UserName)

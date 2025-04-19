@@ -10,5 +10,7 @@ namespace infrastructures.Repository.IRepository
 {
      public interface IRestaurant : IRepository<Models.Models.Restaurant>
     {
+        
+
     }
 }

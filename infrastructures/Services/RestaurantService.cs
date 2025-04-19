@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace infrastructures.Services
@@ -63,13 +64,57 @@ namespace infrastructures.Services
 
         public async Task<bool> DeleteRestaurantAsync(int restaurantId)
         {
-            var restaurant = await _unitOfWork.restaurant.GetOneAsync(expression: r => r.RestaurantID == restaurantId);
-            if (restaurant == null) return false;
+            var restaurant = await _unitOfWork.restaurant.GetOneAsync(
+                new Expression<Func<Models.Models.Restaurant, object>>[]
+                {
+            r => r.foodCategories,
+            r => r.Tables,
+            r => r.TimeSlot,
+            r => r.Reservations,
+            r => r.Orders,
+            r => r.MenuItems
+                },
+                expression: r => r.RestaurantID == restaurantId);
 
-            await DeleteImage(restaurant.ImgUrl);
-            _unitOfWork.restaurant.Delete(restaurant);
-            await _unitOfWork.CompleteAsync();
-            return true;
+            if (restaurant == null)
+                throw new Exception("❌ Restaurant not found.");
+
+            try
+            {
+                // Delete child entities if any
+                if (restaurant.Tables?.Any() == true)
+                    _unitOfWork.table.DeleteRange(restaurant.Tables);
+
+                if (restaurant.TimeSlot?.Any() == true)
+                    _unitOfWork.timeSlots.DeleteRange(restaurant.TimeSlot);
+
+                if (restaurant.MenuItems?.Any() == true)
+                    _unitOfWork.menuItem.DeleteRange(restaurant.MenuItems);
+
+                if (restaurant.foodCategories?.Any() == true)
+                    _unitOfWork.foodCategory.DeleteRange(restaurant.foodCategories);
+
+                if (restaurant.Reservations?.Any() == true)
+                    _unitOfWork.reservation.DeleteRange(restaurant.Reservations);
+
+                if (restaurant.Orders?.Any() == true)
+                    _unitOfWork.order.DeleteRange(restaurant.Orders);
+
+                if (!string.IsNullOrEmpty(restaurant.ImgUrl))
+                    await DeleteImage(restaurant.ImgUrl);
+
+                _unitOfWork.restaurant.Delete(restaurant);
+
+                // Save changes
+                await _unitOfWork.CompleteAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("❌ Failed to delete restaurant and its related entities.\nDetails: " +
+                                    (ex.InnerException?.Message ?? ex.Message));
+            }
         }
 
         public async Task<Restaurant?> ApproveRestaurantAsync(int restaurantId)

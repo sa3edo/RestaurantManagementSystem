@@ -353,9 +353,14 @@ public class AdminController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, $"❌ Error: {ex.Message}");
+            var detailedMessage = "❌ Error deleting restaurant. " +
+                "Please make sure to remove all related entities such as reservations, tables, food categories, menu items, and time slots before deleting the restaurant.\n\n" +
+                $"Technical Details: {ex.Message}";
+
+            return StatusCode(500, detailedMessage);
         }
     }
+
 
     [HttpPut("restaurants/{restaurantId}/approve")]
     public async Task<IActionResult> ApproveRestaurantAsync(int restaurantId)

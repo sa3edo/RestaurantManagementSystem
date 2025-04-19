@@ -70,6 +70,10 @@ namespace RestaurantManagementSystem.Repository
 
             return await query.ToListAsync();
         }
+        public void DeleteRange(IEnumerable<T> entities)
+        {
+            _dbSet.RemoveRange(entities);
+        }
 
         public async Task<T?> GetOneAsync(Expression<Func<T, object>>[]? includeProps = null, Expression<Func<T, bool>>? expression = null, bool tracked = true)
         {

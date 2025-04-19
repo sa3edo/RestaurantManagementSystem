@@ -33,9 +33,17 @@ namespace infrastructures.Services
 
         public async Task<Restaurant?> GetRestaurantByIdAsync(int restaurantId) =>
             await _unitOfWork.restaurant.GetOneAsync(expression: r => r.RestaurantID == restaurantId);
-
+        
         public async Task<Restaurant> CreateRestaurantAsync(Restaurant restaurant, IFormFile? restImgs)
         {
+            var Duplicate = await _unitOfWork.restaurant.GetOneAsync(expression: e =>
+                e.Location == restaurant.Location && e.Name == restaurant.Name);
+            var DuplicateName = await _unitOfWork.restaurant.GetOneAsync(expression:e=> e.ManagerID != restaurant.ManagerID && e.Name == restaurant.Name);
+
+            if (Duplicate !=null)
+                throw new InvalidOperationException("A restaurant with the samelocation already exists.");
+            if(DuplicateName !=null)
+                throw new InvalidOperationException("restaurant with the same name is managed by a different manager.");          
             restaurant.ImgUrl = await SaveImageAsync(restImgs);
             await _unitOfWork.restaurant.CreateAsync(restaurant);
             await _unitOfWork.CompleteAsync();
@@ -47,33 +55,44 @@ namespace infrastructures.Services
             var existingRestaurant = await _unitOfWork.restaurant.GetOneAsync(expression: e => e.RestaurantID == restaurantId);
             if (existingRestaurant == null) return null;
 
+  
+            var duplicate = await _unitOfWork.restaurant.GetOneAsync(expression: e =>
+                e.Location == restaurant.Location && e.Name == restaurant.Name && e.RestaurantID != restaurantId);
+            if (duplicate != null)
+                throw new InvalidOperationException("A restaurant with the same location already exists.");
+
+            var duplicateName = await _unitOfWork.restaurant.GetOneAsync(expression: e =>
+                e.ManagerID != restaurant.ManagerID && e.Name == restaurant.Name && e.RestaurantID != restaurantId);
+            if (duplicateName != null)
+                throw new InvalidOperationException("A restaurant with the same name is managed by a different manager.");
+
             if (restImgs != null && restImgs.Length > 0)
             {
                 await DeleteImage(existingRestaurant.ImgUrl);
                 existingRestaurant.ImgUrl = await SaveImageAsync(restImgs);
             }
-
             existingRestaurant.Name = restaurant.Name;
             existingRestaurant.Description = restaurant.Description;
             existingRestaurant.Location = restaurant.Location;
 
             _unitOfWork.restaurant.Edit(existingRestaurant);
             await _unitOfWork.CompleteAsync();
+
             return existingRestaurant;
         }
+
 
         public async Task<bool> DeleteRestaurantAsync(int restaurantId)
         {
             var restaurant = await _unitOfWork.restaurant.GetOneAsync(
-                new Expression<Func<Models.Models.Restaurant, object>>[]
-                {
+                [
             r => r.foodCategories,
             r => r.Tables,
             r => r.TimeSlot,
             r => r.Reservations,
             r => r.Orders,
             r => r.MenuItems
-                },
+                ],
                 expression: r => r.RestaurantID == restaurantId);
 
             if (restaurant == null)
@@ -81,7 +100,6 @@ namespace infrastructures.Services
 
             try
             {
-                // Delete child entities if any
                 if (restaurant.Tables?.Any() == true)
                     _unitOfWork.table.DeleteRange(restaurant.Tables);
 
@@ -119,6 +137,10 @@ namespace infrastructures.Services
 
         public async Task<Restaurant?> ApproveRestaurantAsync(int restaurantId)
         {
+            var Restaurant = await _unitOfWork.restaurant.GetOneAsync(expression: r => r.RestaurantID == restaurantId);
+
+            if (Restaurant.Status != RestaurantStatus.Pending)
+                throw new InvalidOperationException("Reservation is already processed.");
             return await ChangeRestaurantStatusAsync(restaurantId, RestaurantStatus.Approved);
         }
 

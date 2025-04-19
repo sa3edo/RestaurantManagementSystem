@@ -103,7 +103,7 @@ namespace infrastructures.Services
             if (reservation.Status != ReservationStatus.Pending)
                 throw new InvalidOperationException("Reservation is already processed.");
             var isDuplicate = await _unitOfWork.reservation.GetOneAsync(expression: r =>
-        r.ReservationID != reservation.ReservationID && // exclude current
+        r.ReservationID != reservation.ReservationID && 
         r.UserID == reservation.UserID &&
         r.TableId == reservation.TableId &&
         r.ReservationDate == reservation.ReservationDate &&

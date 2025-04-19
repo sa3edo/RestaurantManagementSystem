@@ -57,23 +57,25 @@ namespace infrastructures.Services
 
         public async Task<Models.Models.MenuItem?> UpdateMenuItemAsync(int menuItemId, Models.Models.MenuItem menuItem, IFormFile? menuImg)
         {
-            var existingMenuItem = await _unitOfWork.menuItem.GetOneAsync(expression: m => m.MenuItemID == menuItemId, tracked: false);
+            var existingMenuItem = await _unitOfWork.menuItem.GetOneAsync(expression: m => m.MenuItemID == menuItemId);
+
             if (existingMenuItem == null) return null;
 
             var isDuplicate = await _unitOfWork.menuItem.GetOneAsync(expression: e => e.MenuItemID != menuItem.MenuItemID &&
-            e.Price == menuItem.Price &&
-            e.Name == menuItem.Name &&
-            e.RestaurantID == menuItem.RestaurantID
-            );
+                                                                                 e.Price == menuItem.Price &&
+                                                                                 e.Name == menuItem.Name &&
+                                                                                 e.RestaurantID == menuItem.RestaurantID);
 
-            if (isDuplicate !=null)
+            if (isDuplicate != null)
                 throw new InvalidOperationException("Another MenuItem with this name already exists.");
 
             if (menuImg != null && menuImg.Length > 0)
             {
                 EnsureImageDirectoryExists();
+
                 var newImage = await SaveImageAsync(menuImg);
                 DeleteImage(existingMenuItem.ImgUrl);
+
                 menuItem.ImgUrl = newImage;
             }
             else
@@ -84,11 +86,15 @@ namespace infrastructures.Services
             existingMenuItem.Name = menuItem.Name;
             existingMenuItem.Price = menuItem.Price;
             existingMenuItem.ImgUrl = menuItem.ImgUrl;
+            existingMenuItem.Description = menuItem.Description;
 
             _unitOfWork.menuItem.Edit(existingMenuItem);
+
             await _unitOfWork.CompleteAsync();
+
             return existingMenuItem;
         }
+
 
         public async Task<bool> DeleteMenuItemAsync(int menuItemId)
         {

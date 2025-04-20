@@ -230,6 +230,23 @@ public class RestaurantManagerController : ControllerBase
         }
 
     }
+    [HttpGet("GetMenuItemById/{menuItemId}")]
+    public async Task<IActionResult> GetMenuItemById(int menuItemId)
+    {
+        try
+        {
+            var menuItem = await _menuItemService.GetMenuItemByIdAsync(menuItemId);
+            if (menuItem == null)
+                return NotFound(new { Message = $"Menu item with ID {menuItemId} not found." });
+
+            return Ok(menuItem);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Message = "An error occurred while retrieving the menu item.", Error = ex.Message });
+        }
+    }
+
 
     [HttpPut("UpdateMenuItem/{menuItemId}")]
     public async Task<IActionResult> UpdateMenuItem(int menuItemId, [FromForm] Models.Models.MenuItem menuItem, IFormFile? MenuImg)
@@ -271,6 +288,39 @@ public class RestaurantManagerController : ControllerBase
     }
 
     // ------------------------ Order Management ------------------------
+    [HttpGet("GetAllOrdersByRestaurant/{restaurantId}")]
+    public async Task<IActionResult> GetAllOrdersByRestaurant(int restaurantId)
+    {
+        try
+        {
+            var restaurant = await _restaurantService.GetRestaurantByIdAsync(restaurantId);
+            if (restaurant == null)
+                return NotFound(new { Message = $"Restaurant with ID {restaurantId} not found." });
+
+            var orders = await _orderService.GetAllOrdersAsync(restaurantId);
+            return Ok(orders);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Message = "An error occurred while retrieving orders.", Error = ex.Message });
+        }
+    }
+    [HttpGet("GetOrderById/{orderId}")]
+    public async Task<IActionResult> GetOrderById(int orderId)
+    {
+        try
+        {
+            var order = await _orderService.GetOrderByIdAsync(orderId);
+            if (order == null)
+                return NotFound(new { Message = $"Order with ID {orderId} not found." });
+
+            return Ok(order);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Message = "An error occurred while retrieving the order.", Error = ex.Message });
+        }
+    }
 
     [HttpPut("orders/{orderId}/UpdateOrderStatus")]
     public async Task<IActionResult> UpdateOrderStatus(int orderId,OrderStatus newStatus)
@@ -308,6 +358,40 @@ public class RestaurantManagerController : ControllerBase
     }
 
     // ------------------------ Reservation Management ------------------------
+    [HttpGet("GetAllReservationByRestaurant/{restaurantId}")]
+    public async Task<IActionResult> GetAllReservationByRestaurant(int restaurantId)
+    {
+        try
+        {
+            var reservation = await _restaurantService.GetRestaurantByIdAsync(restaurantId);
+            if (reservation == null)
+                return NotFound(new { Message = $"Reservation with ID {restaurantId} not found." });
+
+            var Reservations = await _reservationService.GetReservationsByRestaurantAsync(restaurantId);
+            return Ok(Reservations);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Message = "An error occurred while retrieving Reservation.", Error = ex.Message });
+        }
+    }
+    [HttpGet("GetReservationById/{reservationId}")]
+    public async Task<IActionResult> GetReservationById(int reservationId)
+    {
+        try
+        {
+            var reservation = await _reservationService.GetReservationByIdAsync(reservationId);
+            if (reservation == null)
+                return NotFound(new { Message = $"Reservation with ID {reservationId} not found." });
+
+            return Ok(reservation);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Message = "An error occurred while retrieving the Reservation.", Error = ex.Message });
+        }
+    }
+
 
     [HttpPut("reservations/{reservationId}/accept")]
     public async Task<IActionResult> AcceptReservation(int reservationId)
@@ -414,6 +498,22 @@ public class RestaurantManagerController : ControllerBase
             return StatusCode(500, new { Message = "An error occurred while retrieving tables.", Error = ex.Message });
         }
     }
+    [HttpGet("GetTableById/{tableID}")]
+    public async Task<IActionResult> GetTableById(int tableID)
+    {
+        try
+        {
+            var Table = await _tableService.GetTableByIdAsync(tableID);
+            if (Table == null)
+                return NotFound(new { Message = $"Table with ID {tableID} not found." });
+
+            return Ok(Table);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Message = "An error occurred while retrieving the Table.", Error = ex.Message });
+        }
+    }
 
     [HttpPost("CreateTable")]
     public async Task<IActionResult> CreateTable(int restaurantId, Models.Models.Table table)
@@ -508,6 +608,22 @@ public class RestaurantManagerController : ControllerBase
         }
     }
 
+    [HttpGet("GetFoodCategoryByd/{categoryId}")]
+    public async Task<IActionResult> GetFoodCategoryByd(int categoryId)
+    {
+        try
+        {
+            var Category = await _foodCategoryService.GetCategoryByIdAsync(categoryId);
+            if (Category == null)
+                return NotFound(new { Message = $"Category with ID {categoryId} not found." });
+
+            return Ok(Category);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Message = "An error occurred while retrieving the order.", Error = ex.Message });
+        }
+    }
 
     [HttpPost("AddMangerFoodCategory")]
     public async Task<IActionResult> AddMangerFoodCategory(

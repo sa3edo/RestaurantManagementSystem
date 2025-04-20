@@ -124,6 +124,15 @@ namespace RestaurantManagementSystem.Controllers
                 return StatusCode(500, new { Message = "An error occurred while retrieving the menu.", Error = ex.Message });
             }
         }
+        [HttpGet("menuitems/{menuItemId}")]
+        public async Task<IActionResult> GetMenuItemById(int menuItemId)
+        {
+            var menuItem = await _menuItemService.GetMenuItemByIdAsync(menuItemId);
+            if (menuItem == null)
+                return NotFound(new { Message = $"❌ Menu item with ID {menuItemId} not found." });
+
+            return Ok(menuItem);
+        }
 
         [HttpPost("CreateOrder")]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto orderDto)
@@ -179,6 +188,16 @@ namespace RestaurantManagementSystem.Controllers
             var orders = await _orderService.GetUserOrders(userId);
             return Ok(orders);
         }
+        [HttpGet("orders/{orderId}")]
+        public async Task<IActionResult> GetOrderById(int orderId)
+        {
+            var order = await _orderService.GetOrderByIdAsync(orderId);
+            if (order == null)
+                return NotFound(new { Message = $"❌ Order with ID {orderId} not found." });
+
+            return Ok(order);
+        }
+
 
         [HttpDelete("orders/{orderId}")]
         public async Task<IActionResult> CancelOrder(int orderId)

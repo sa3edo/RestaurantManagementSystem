@@ -30,7 +30,7 @@ namespace infrastructures.Services
             await _unitOfWork.reservation.GetAsync(expression: r => r.RestaurantID == restaurantId);
 
         public async Task<Reservation?> GetReservationByIdAsync(int reservationId) =>
-            await _unitOfWork.reservation.GetOneAsync(expression: r => r.ReservationID == reservationId);
+            await _unitOfWork.reservation.GetOneAsync([e=>e.Restaurant],expression: r => r.ReservationID == reservationId);
         public async Task<Reservation> CreateReservationAsync(Reservation reservation)
         {
             var existingReservation = await _unitOfWork.reservation.GetOneAsync(expression: r =>

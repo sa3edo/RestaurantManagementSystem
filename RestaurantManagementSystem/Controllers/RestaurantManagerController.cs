@@ -419,20 +419,21 @@ public class RestaurantManagerController : ControllerBase
 
 
     [HttpGet("GetReservationById/{reservationId}")]
-    public async Task<IActionResult> GetReservationById(int reservationId)
+    public async Task<ActionResult> GetReservationById(int ReservationId)
     {
-        try
+        var reservations = await _reservationService.GetReservationByIdAsync(ReservationId);
+        var result = new
         {
-            var reservation = await _reservationService.GetReservationByIdAsync(reservationId);
-            if (reservation == null)
-                return NotFound(new { Message = $"Reservation with ID {reservationId} not found." });
-
-            return Ok(reservation);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { Message = "An error occurred while retrieving the Reservation.", Error = ex.Message });
-        }
+            ReservationID = reservations.ReservationID,
+            CustomerEmail = reservations.Customer?.Email,
+            RestaurantName = reservations.Restaurant?.Name,
+            TimeSlotID = reservations.TimeSlotID,
+            TableId = reservations.TableId,
+            ReservationDate = reservations.ReservationDate,
+            CreatedAt = reservations.CreatedAt,
+            Status = reservations.Status,
+        };
+        return Ok(result);
     }
 
 

@@ -18,12 +18,13 @@ namespace infrastructures.Services
         }
 
         public async Task<IEnumerable<Order>> GetAllOrdersAsync(int RestaurantId) =>
-            await _unitOfWork.order.GetAsync(expression:e=>e.RestaurantID== RestaurantId);
+            await _unitOfWork.order.GetAsync([e=>e.Customer],expression:e=>e.RestaurantID== RestaurantId);
 
-        public async Task<Order?> GetOrderByIdAsync(int orderId)
+        public async Task<Models.Models.Order?> GetOrderByIdAsync(int id)
         {
-            return await _unitOfWork.order.GetOneAsync([e => e.Restaurant], expression: e => e.OrderID == orderId);
+            return await _unitOfWork.order.GetOrderWithDetailsByIdAsync(id);
         }
+
 
         public async Task<Order> CreateOrderAsync(Order order)
         {

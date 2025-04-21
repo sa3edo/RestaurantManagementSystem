@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.SignalR;
 using Utility.SignalR;
 using RestaurantManagementSystem.Models;
 using infrastructures.Migrations;
+using Order = Models.Models.Order;
 
 namespace RestaurantManagementSystem.Controllers
 {
@@ -143,32 +144,45 @@ namespace RestaurantManagementSystem.Controllers
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto orderDto)
         {
             var userId = GetUserId();
-            var order = new Order
-            {
-                UserID = userId,
-                RestaurantID = orderDto.RestaurantId,
-                Status = OrderStatus.Pending,
-                CreatedAt = DateTime.UtcNow,
-                TotalAmount = 0
-            };
+            var today = DateTime.UtcNow.Date;
+            var allUserOrders = await _orderService.GetAllOrdersAsync(orderDto.RestaurantId);
+            var existingOrder = allUserOrders
+                .FirstOrDefault(o =>
+                    o.UserID == userId &&
+                    o.CreatedAt.Date == today);
 
-            var newOrder = await _orderService.CreateOrderAsync(order);
+            Order order;
+            if (existingOrder != null)
+            {
+                order = existingOrder;
+            }
+            else
+            {
+                order = new Order
+                {
+                    UserID = userId,
+                    RestaurantID = orderDto.RestaurantId,
+                    Status = OrderStatus.Pending,
+                    CreatedAt = DateTime.UtcNow,
+                    TotalAmount = 0
+                };
+
+                order = await _orderService.CreateOrderAsync(order);
+            }
+
+            decimal totalAmount = order.TotalAmount;
 
             if (orderDto.Items != null && orderDto.Items.Any())
             {
-                decimal totalAmount = 0;
-
                 foreach (var itemDto in orderDto.Items)
                 {
                     var menuItem = await _menuItemService.GetMenuItemByIdAsync(itemDto.MenuItemId);
                     if (menuItem == null)
-                    {
                         continue;
-                    }
 
                     var orderItem = new OrderItem
                     {
-                        OrderID = newOrder.OrderID,
+                        OrderID = order.OrderID,
                         MenuItemID = itemDto.MenuItemId,
                         Quantity = itemDto.Quantity,
                         CreatedAt = DateTime.UtcNow
@@ -178,13 +192,15 @@ namespace RestaurantManagementSystem.Controllers
                     totalAmount += menuItem.Price * itemDto.Quantity;
                 }
 
-                newOrder.TotalAmount = totalAmount;
-                await _orderService.UpdateOrderAsync(newOrder);
+                order.TotalAmount = totalAmount;
+                await _orderService.UpdateOrderAsync(order);
             }
-            await hubContext.Clients.All.SendAsync("ReceiveMessage", $"New order created by User {userId}");
 
-            return CreatedAtAction(nameof(CreateOrder), new { id = newOrder.OrderID }, newOrder);
+            await hubContext.Clients.All.SendAsync("ReceiveMessage", $"Order updated/created by User {userId}");
+
+            return CreatedAtAction(nameof(CreateOrder), new { id = order.OrderID }, order);
         }
+
 
         [HttpGet("orders")]
         public async Task<ActionResult> GetUserOrders()
@@ -199,8 +215,22 @@ namespace RestaurantManagementSystem.Controllers
             var order = await _orderService.GetOrderByIdAsync(orderId);
             if (order == null)
                 return NotFound(new { Message = $"❌ Order with ID {orderId} not found." });
-
-            return Ok(order);
+            var result = new
+            {
+                OrderId = order.OrderID,
+                UserName = order.Customer?.Email,
+                RestaurantName = order.Restaurant?.Name,
+                Status = order.Status,
+                TotalAmount = order.TotalAmount,
+                MenuItems = order.OrderItems.Select(oi => new
+                {
+                    MenuItemId = oi.MenuItem?.MenuItemID,
+                    Name = oi.MenuItem?.Name,
+                    Price = oi.MenuItem?.Price,
+                    Quantity = oi.Quantity
+                }).ToList()
+            };
+            return Ok(result);
         }
 
 

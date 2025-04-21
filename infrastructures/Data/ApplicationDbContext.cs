@@ -14,7 +14,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     DbSet<FoodCategory> FoodCategories { get; set; }
     DbSet<MenuItem> MenuItems { get; set; }
     DbSet<OrderItem> OrderItems { get; set; }
-    DbSet<Models.Models.Order> Orders { get; set; }
+   public DbSet<Models.Models.Order> Orders { get; set; }
     DbSet<Models.Chat.ChatMessage> chatMessages { get; set; }
     DbSet<Reservation> Reservations { get; set; }
     DbSet<Restaurant> Restaurants { get; set; }
@@ -28,6 +28,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        builder.Entity<Models.Models.Order>()
+    .HasOne(o => o.Customer)
+    .WithMany() 
+    .HasForeignKey(o => o.UserID)
+    .OnDelete(DeleteBehavior.Restrict);
 
         builder.Entity<Reservation>()
             .HasOne(r => r.Restaurant)

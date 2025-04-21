@@ -14,6 +14,9 @@ using Utility.SignalR;
 using RestaurantManagementSystem.Utility;
 using infrastructures.Repository;
 using infrastructures.Services;
+using AutoMapper.Configuration.Annotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 [Route("api/restaurant-manager")]
 [ApiController]
@@ -298,28 +301,46 @@ public class RestaurantManagerController : ControllerBase
                 return NotFound(new { Message = $"Restaurant with ID {restaurantId} not found." });
 
             var orders = await _orderService.GetAllOrdersAsync(restaurantId);
-            return Ok(orders);
+
+            var resultList = orders.Select(res => new
+            {
+                OrderID = res.OrderID,
+                UserName = res.Customer?.Email,
+                Status = res.Status,
+                TotalAmount = res.TotalAmount,
+                CreatedAt = res.CreatedAt,
+            }).ToList();
+
+            return Ok(resultList);
         }
         catch (Exception ex)
         {
             return StatusCode(500, new { Message = "An error occurred while retrieving orders.", Error = ex.Message });
         }
     }
-    [HttpGet("GetOrderById/{orderId}")]
+
+    [HttpGet("orders/{orderId}")]
     public async Task<IActionResult> GetOrderById(int orderId)
     {
-        try
+        var order = await _orderService.GetOrderByIdAsync(orderId);
+        if (order == null)
+            return NotFound(new { Message = $"❌ Order with ID {orderId} not found." });
+        var result = new
         {
-            var order = await _orderService.GetOrderByIdAsync(orderId);
-            if (order == null)
-                return NotFound(new { Message = $"Order with ID {orderId} not found." });
-
-            return Ok(order);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { Message = "An error occurred while retrieving the order.", Error = ex.Message });
-        }
+            OrderId = order.OrderID,
+            UserName = order.Customer?.Email,
+            RestaurantName = order.Restaurant?.Name,
+            Status = order.Status,
+            TotalAmount = order.TotalAmount,
+            MenuItems = order.OrderItems.Select(oi => new
+            {
+                MenuItemId = oi.MenuItem?.MenuItemID,
+                Name = oi.MenuItem?.Name,
+                Price = oi.MenuItem?.Price,
+                Quantity = oi.Quantity
+            }).ToList()
+        };
+        return Ok(result);
     }
 
     [HttpPut("orders/{orderId}/UpdateOrderStatus")]

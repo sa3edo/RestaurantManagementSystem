@@ -12,7 +12,7 @@ namespace Models.Models
         public int OrderID { get; set; }
         public string? UserID { get; set; }
         [ValidateNever]
-        [Ignore]
+        [JsonIgnore]
         public ApplicationUser? Customer { get; set; }
         [Required]
         public int RestaurantID { get; set; }

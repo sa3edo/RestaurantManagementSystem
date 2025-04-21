@@ -359,22 +359,65 @@ public class RestaurantManagerController : ControllerBase
 
     // ------------------------ Reservation Management ------------------------
     [HttpGet("GetAllReservationByRestaurant/{restaurantId}")]
-    public async Task<IActionResult> GetAllReservationByRestaurant(int restaurantId)
+    public async Task<IActionResult> GetAllReservationByRestaurant(
+     int restaurantId,
+     string? search = null,
+     int pageNumber = 1
+     )
     {
+        int pageSize = 15;
         try
         {
-            var reservation = await _restaurantService.GetRestaurantByIdAsync(restaurantId);
-            if (reservation == null)
-                return NotFound(new { Message = $"Reservation with ID {restaurantId} not found." });
+            var restaurant = await _restaurantService.GetRestaurantByIdAsync(restaurantId);
+            if (restaurant == null)
+                return NotFound(new { Message = $"Restaurant with ID {restaurantId} not found." });
 
-            var Reservations = await _reservationService.GetReservationsByRestaurantAsync(restaurantId);
-            return Ok(Reservations);
+            var reservations = await _reservationService.GetReservationsByRestaurantAsync(restaurantId);
+
+            // Apply search by email if provided
+            if (!string.IsNullOrEmpty(search))
+            {
+                reservations = reservations
+                    .Where(r => r.Customer != null && r.Customer.Email.ToLower().Contains(search.ToLower()))
+                    .ToList();
+            }
+
+            
+            var totalCount = reservations.Count();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            var pagedReservations = reservations
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(r => new
+                {
+                    ReservationID = r.ReservationID,
+                    RestaurantID = r.RestaurantID,
+                    TimeSlotID = r.TimeSlotID,
+                    TableId = r.TableId,
+                    ReservationDate = r.ReservationDate,
+                    CreatedAt = r.CreatedAt,
+                    Status = r.Status,
+                    CustomerEmail = r.Customer?.Email
+                })
+                .ToList();
+
+            return Ok(new
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                TotalPages = totalPages,
+                Data = pagedReservations
+            });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { Message = "An error occurred while retrieving Reservation.", Error = ex.Message });
+            return StatusCode(500, new { Message = "An error occurred while retrieving reservations.", Error = ex.Message });
         }
     }
+
+
     [HttpGet("GetReservationById/{reservationId}")]
     public async Task<IActionResult> GetReservationById(int reservationId)
     {

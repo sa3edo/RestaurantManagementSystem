@@ -12,10 +12,10 @@ namespace Models.Models
     {
         [Key]
         public int ReservationID { get; set; }
-        [Required]
-        public string UserID { get; set; }
+        
+        public string? UserID { get; set; }
         [ValidateNever]
-        [JsonIgnore]
+       // [JsonIgnore]
         public ApplicationUser? Customer { get; set; }
         [Required]
         public int RestaurantID { get; set; }

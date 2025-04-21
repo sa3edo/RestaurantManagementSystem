@@ -10,6 +10,8 @@ using Models.DTO;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Utility.SignalR;
+using RestaurantManagementSystem.Models;
+using infrastructures.Migrations;
 
 namespace RestaurantManagementSystem.Controllers
 {
@@ -26,6 +28,7 @@ namespace RestaurantManagementSystem.Controllers
         private readonly IFoodCategoryService _foodCategoryService;
         private readonly IOrderItemService _orderItemService;
         private readonly IHubContext<AdminHub> hubContext;
+        private readonly UserManager<ApplicationUser> userManager;
 
         public UserController(
             IMenuItemService menuItemService,
@@ -35,7 +38,8 @@ namespace RestaurantManagementSystem.Controllers
             IRestaurantService restaurantService,
             IFoodCategoryService foodCategoryService,
             IOrderItemService orderItemService,
-            IHubContext<AdminHub> hubContext)
+            IHubContext<AdminHub> hubContext,
+            UserManager<ApplicationUser> userManager)
         {
             _menuItemService = menuItemService;
             _orderService = orderService;
@@ -45,11 +49,12 @@ namespace RestaurantManagementSystem.Controllers
             _foodCategoryService = foodCategoryService;
             _orderItemService = orderItemService;
             this.hubContext = hubContext;
+            this.userManager = userManager;
         }
 
         private string GetUserId()
         {
-            return User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         }
 
         [HttpGet("GetAllRestaurant")]
@@ -208,20 +213,45 @@ namespace RestaurantManagementSystem.Controllers
         }
 
         [HttpPost("CreateReservation")]
-        public async Task<ActionResult> BookTable([FromBody] Reservation reservation)
+        public async Task<ActionResult> BookTable([FromBody] ReservationDto reservation)
         {
-            reservation.UserID = GetUserId().ToString();
+            var userId = GetUserId().ToString();
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User is not authenticated." });
+            }
 
             try
             {
-                var newReservation = await _reservationService.CreateReservationAsync(reservation);
-                return CreatedAtAction(nameof(BookTable), new { id = newReservation.ReservationID }, newReservation);
+                var reservationCreate = new Reservation()
+                {
+                    UserID = userId,
+                    RestaurantID = reservation.RestaurantID,
+                    TimeSlotID = reservation.TimeSlotID,
+                    TableId = reservation.TableId,
+                    ReservationDate = reservation.ReservationDate
+                };
+
+                var newReservation = await _reservationService.CreateReservationAsync(reservationCreate);
+
+                var reservationDto = new ReservationDto
+                {
+                    ReservationID = newReservation.ReservationID,
+                    RestaurantID = newReservation.RestaurantID,
+                    TimeSlotID = newReservation.TimeSlotID,
+                    TableId = newReservation.TableId,
+                    ReservationDate = newReservation.ReservationDate
+                };
+
+                return CreatedAtAction(nameof(BookTable), new { id = newReservation.ReservationID }, reservationDto);
             }
             catch (InvalidOperationException ex)
             {
                 return BadRequest(new { message = ex.Message });
             }
         }
+
 
         [HttpGet("GetUserReservations")]
         public async Task<ActionResult> GetUserReservations()
@@ -233,10 +263,20 @@ namespace RestaurantManagementSystem.Controllers
         [HttpGet("GetReservationById")]
         public async Task<ActionResult> GetReservationById(int ReservationId)
         {
-           
             var reservations = await _reservationService.GetReservationByIdAsync(ReservationId);
-            return Ok(reservations);
+            var result = new
+            {
+                ReservationID = reservations.ReservationID,
+                RestaurantName = reservations.Restaurant?.Name,
+                TimeSlotID = reservations.TimeSlotID,
+                TableId = reservations.TableId,
+                ReservationDate = reservations.ReservationDate,
+                CreatedAt = reservations.CreatedAt,
+                Status = reservations.Status,
+            };
+            return Ok(result);  
         }
+
 
 
         [HttpDelete("CancelReservation/{reservationId}")]
@@ -267,7 +307,8 @@ namespace RestaurantManagementSystem.Controllers
         [HttpPost("CreateReview")]
         public async Task<ActionResult> CreateReview([FromBody] Review review)
         {
-            review.UserID = GetUserId();
+            var UserId= GetUserId().ToString();
+            review.UserID = UserId;
             var newReview = await _reviewService.CreateReviewAsync(review);
             return CreatedAtAction(nameof(CreateReview), new { id = newReview.ReviewID }, newReview);
         }

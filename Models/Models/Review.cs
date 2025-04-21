@@ -15,8 +15,7 @@ namespace Models.Models
     {
         [Key]
         public int ReviewID { get; set; }
-        [Required]
-        public string UserID { get; set; }
+        public string? UserID { get; set; }
         [ValidateNever]
         [JsonIgnore]
         public ApplicationUser? Customer { get; set; }

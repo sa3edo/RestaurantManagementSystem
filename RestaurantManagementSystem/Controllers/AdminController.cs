@@ -23,6 +23,7 @@ public class AdminController : ControllerBase
     private readonly IReservationService _reservationService;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IHubContext<AdminHub> _hubContext;
+    private readonly IReviewService _reviewService;
 
     public AdminController(
         IFoodCategoryService foodCategoryService,
@@ -30,7 +31,8 @@ public class AdminController : ControllerBase
         IOrderService orderService,
         IReservationService reservationService,
         UserManager<ApplicationUser> userManager,
-        IHubContext<AdminHub> hubContext)
+        IHubContext<AdminHub> hubContext,
+        IReviewService reviewService)
     {
         _foodCategoryService = foodCategoryService;
         _restaurantService = restaurantService;
@@ -38,6 +40,7 @@ public class AdminController : ControllerBase
         _reservationService = reservationService;
         _userManager = userManager;
         _hubContext = hubContext;
+        this._reviewService = reviewService;
     }
     [HttpGet("GetAllUsers")]
     public async Task<IActionResult> GetAllUsers(string? search, int pageNumber = 1)
@@ -627,6 +630,41 @@ public class AdminController : ControllerBase
                 Error = ex.Message
             });
         }
+    }
+    public async Task<IActionResult> GetRestaurantReview(int RestID, [FromQuery] int page = 1)
+    {
+        try
+        {
+            int pageSize = 20;
+            var Review = await _reviewService.GetReviewsByRestaurantAsync(RestID);
+            int totalCount = Review.Count();
+
+            var paginatedOrders = Review
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(res => new
+                {
+                    ReviewID = res.ReviewID,
+                    UserName = res.Customer?.Email,
+                    Rating = res.Rating,
+                    Comment=res.Comment,
+                    CreatedAt = res.CreatedAt
+                })
+                .ToList();
+
+            return Ok(new
+            {
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize,
+                Data = paginatedOrders
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"❌ Error: {ex.Message}");
+        }
+
     }
 }
 

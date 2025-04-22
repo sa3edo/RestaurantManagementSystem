@@ -13,6 +13,8 @@ using Utility.SignalR;
 using RestaurantManagementSystem.Models;
 using infrastructures.Migrations;
 using Order = Models.Models.Order;
+using Review = Models.Models.Review;
+using infrastructures.Services;
 
 namespace RestaurantManagementSystem.Controllers
 {
@@ -30,6 +32,8 @@ namespace RestaurantManagementSystem.Controllers
         private readonly IOrderItemService _orderItemService;
         private readonly IHubContext<AdminHub> hubContext;
         private readonly UserManager<ApplicationUser> userManager;
+        private readonly ITableService _tableService;
+        private readonly ITimeSlotService _timeSlotService;
 
         public UserController(
             IMenuItemService menuItemService,
@@ -40,7 +44,9 @@ namespace RestaurantManagementSystem.Controllers
             IFoodCategoryService foodCategoryService,
             IOrderItemService orderItemService,
             IHubContext<AdminHub> hubContext,
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager,
+            ITableService tableService,
+            ITimeSlotService timeSlotService)
         {
             _menuItemService = menuItemService;
             _orderService = orderService;
@@ -51,6 +57,8 @@ namespace RestaurantManagementSystem.Controllers
             _orderItemService = orderItemService;
             this.hubContext = hubContext;
             this.userManager = userManager;
+            this._tableService = tableService;
+            this._timeSlotService = timeSlotService;
         }
 
         private string GetUserId()
@@ -130,47 +138,37 @@ namespace RestaurantManagementSystem.Controllers
                 return StatusCode(500, new { Message = "An error occurred while retrieving the menu.", Error = ex.Message });
             }
         }
-        [HttpGet("menuitems/{menuItemId}")]
-        public async Task<IActionResult> GetMenuItemById(int menuItemId)
-        {
-            var menuItem = await _menuItemService.GetMenuItemByIdAsync(menuItemId);
-            if (menuItem == null)
-                return NotFound(new { Message = $"❌ Menu item with ID {menuItemId} not found." });
-
-            return Ok(menuItem);
-        }
-
         [HttpPost("CreateOrder")]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto orderDto)
         {
             var userId = GetUserId();
             var today = DateTime.UtcNow.Date;
+
             var allUserOrders = await _orderService.GetAllOrdersAsync(orderDto.RestaurantId);
             var existingOrder = allUserOrders
                 .FirstOrDefault(o =>
                     o.UserID == userId &&
                     o.CreatedAt.Date == today);
 
-            Order order;
-            if (existingOrder != null)
+            // ✅ لو عنده أوردر النهاردة، امنعه
+            if (existingOrder.Status == OrderStatus.Pending)
             {
-                order = existingOrder;
-            }
-            else
-            {
-                order = new Order
-                {
-                    UserID = userId,
-                    RestaurantID = orderDto.RestaurantId,
-                    Status = OrderStatus.Pending,
-                    CreatedAt = DateTime.UtcNow,
-                    TotalAmount = 0
-                };
-
-                order = await _orderService.CreateOrderAsync(order);
+                return BadRequest("You have already placed an order .");
             }
 
-            decimal totalAmount = order.TotalAmount;
+            // ✅ لو مفيش أوردر، أنشئ واحد جديد
+            var order = new Order
+            {
+                UserID = userId,
+                RestaurantID = orderDto.RestaurantId,
+                Status = OrderStatus.Pending,
+                CreatedAt = DateTime.UtcNow,
+                TotalAmount = 0
+            };
+
+            order = await _orderService.CreateOrderAsync(order);
+
+            decimal totalAmount = 0;
 
             if (orderDto.Items != null && orderDto.Items.Any())
             {
@@ -196,7 +194,7 @@ namespace RestaurantManagementSystem.Controllers
                 await _orderService.UpdateOrderAsync(order);
             }
 
-            await hubContext.Clients.All.SendAsync("ReceiveMessage", $"Order updated/created by User {userId}");
+            await hubContext.Clients.All.SendAsync("ReceiveMessage", $"Order created by User {userId}");
 
             return CreatedAtAction(nameof(CreateOrder), new { id = order.OrderID }, order);
         }
@@ -242,6 +240,38 @@ namespace RestaurantManagementSystem.Controllers
             return NoContent();
         }
 
+        [HttpGet("GetTables")]
+        public async Task<IActionResult> GetTables(int restaurantId)
+        {
+            try
+            {
+                var tables = await _tableService.GetTablesByRestaurantAsync(restaurantId);
+                if (tables == null || !tables.Any())
+                    return NotFound(new { Message = "No tables found for this restaurant." });
+
+                return Ok(tables);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred while retrieving tables.", Error = ex.Message });
+            }
+        }
+        [HttpGet("GetTimeSlots")]
+        public async Task<IActionResult> GetTimeSlots(int restaurantId)
+        {
+            try
+            {
+                var timeSlots = await _timeSlotService.GetAvailableTimeSlotsAsync(restaurantId);
+                if (timeSlots == null || !timeSlots.Any())
+                    return NotFound(new { Message = "No time slots found for this restaurant." });
+
+                return Ok(timeSlots);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred while retrieving time slots.", Error = ex.Message });
+            }
+        }
         [HttpPost("CreateReservation")]
         public async Task<ActionResult> BookTable([FromBody] ReservationDto reservation)
         {

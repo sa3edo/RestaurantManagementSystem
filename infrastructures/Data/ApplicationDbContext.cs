@@ -41,6 +41,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     .HasForeignKey(o => o.RestaurantID)
     .OnDelete(DeleteBehavior.Restrict);
 
+        builder.Entity<Models.Models.Review>()
+   .HasOne(o => o.Customer)
+   .WithMany()
+   .HasForeignKey(o => o.UserID)
+   .OnDelete(DeleteBehavior.Restrict);
+
 
         builder.Entity<Reservation>()
             .HasOne(r => r.Restaurant)

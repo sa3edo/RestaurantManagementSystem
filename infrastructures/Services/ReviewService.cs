@@ -19,7 +19,7 @@ namespace infrastructures.Services
         }
 
         public async Task<IEnumerable<Review>> GetReviewsByRestaurantAsync(int restaurantId) =>
-            await _unitOfWork.review.GetAsync(expression: r => r.RestaurantID == restaurantId);
+            await _unitOfWork.review.GetAsync([e=>e.Customer],expression: r => r.RestaurantID == restaurantId);
 
         public async Task<Review> CreateReviewAsync(Review review)
         {

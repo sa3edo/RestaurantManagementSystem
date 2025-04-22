@@ -17,6 +17,7 @@ using infrastructures.Services;
 using AutoMapper.Configuration.Annotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Stripe;
 
 [Route("api/restaurant-manager")]
 [ApiController]
@@ -32,6 +33,7 @@ public class RestaurantManagerController : ControllerBase
     private readonly ITimeSlotService _timeSlotService;
     private readonly ITableService _tableService;
     private readonly IFoodCategoryService _foodCategoryService;
+    private readonly IReviewService _reviewService;
 
     public RestaurantManagerController(
         IMenuItemService menuItemService,
@@ -42,7 +44,8 @@ public class RestaurantManagerController : ControllerBase
         IHubContext<AdminHub> hubContext,
         ITimeSlotService timeSlotService,
         ITableService tableService,
-        IFoodCategoryService foodCategoryService
+        IFoodCategoryService foodCategoryService,
+        IReviewService reviewService
         )
     {
         _menuItemService = menuItemService;
@@ -54,6 +57,7 @@ public class RestaurantManagerController : ControllerBase
         _timeSlotService = timeSlotService;
         _tableService = tableService;
         _foodCategoryService = foodCategoryService;
+        this._reviewService = reviewService;
     }
 
     // ------------------------ Restaurant Management ------------------------
@@ -773,5 +777,39 @@ public class RestaurantManagerController : ControllerBase
             return StatusCode(500, new { Success = false, Message = ex.Message });
         }
     }
+    public async Task<IActionResult> GetRestaurantReview(int RestID, [FromQuery] int page = 1)
+    {
+        try
+        {
+            int pageSize = 20;
+            var Review = await _reviewService.GetReviewsByRestaurantAsync(RestID);
+            int totalCount = Review.Count();
 
+            var paginatedOrders = Review
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(res => new
+                {
+                    ReviewID = res.ReviewID,
+                    UserName = res.Customer?.Email,
+                    Rating = res.Rating,
+                    Comment = res.Comment,
+                    CreatedAt = res.CreatedAt
+                })
+                .ToList();
+
+            return Ok(new
+            {
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize,
+                Data = paginatedOrders
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"❌ Error: {ex.Message}");
+        }
+
+    }
 }

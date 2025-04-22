@@ -20,18 +20,15 @@ namespace RestaurantManagementSystem.Controllers
         private readonly IAccountService _accountService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IEmailSender _emailSender;
-        private readonly IConfiguration _configuration;
 
         public AccountController(
             IAccountService accountService,
             UserManager<ApplicationUser> userManager,
-            IEmailSender emailSender,
-            IConfiguration configuration)
+            IEmailSender emailSender)
         {
             _accountService = accountService;
             _userManager = userManager;
             _emailSender = emailSender;
-            _configuration = configuration;
         }
 
         [HttpPost("Register")]

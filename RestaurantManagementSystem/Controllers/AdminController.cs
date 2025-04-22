@@ -533,16 +533,37 @@ public class AdminController : ControllerBase
         try
         {
             int pageSize = 10;
+
             var orders = await _orderService.GetAllOrdersAsync(RestaurantId);
+  
             if (status.HasValue)
             {
-                orders = orders.Where(r => r.Status.ToString().Equals(status.Value.ToString(), StringComparison.OrdinalIgnoreCase));
+                orders = orders.Where(r => r.Status == status.Value).ToList();
             }
 
             int totalCount = orders.Count();
-            var paginatedOrders = orders.Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
-            return Ok(new { TotalCount = totalCount, Page = page, PageSize = pageSize, Data = paginatedOrders });
+            var paginatedOrders = orders
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(res => new
+                {
+                    OrderID = res.OrderID,
+                    RestaurantName = res.Restaurant?.Name,
+                    UserName = res.Customer?.Email,
+                    Status = res.Status,
+                    TotalAmount = res.TotalAmount,
+                    CreatedAt = res.CreatedAt
+                })
+                .ToList();
+
+            return Ok(new
+            {
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize,
+                Data = paginatedOrders
+            });
         }
         catch (Exception ex)
         {
@@ -550,20 +571,21 @@ public class AdminController : ControllerBase
         }
     }
 
-    [HttpPut("UpdateOrderStatus/{orderId}/status")]
-    public async Task<IActionResult> UpdateOrderStatus(int orderId, [FromForm] Models.Models.OrderStatus newStatus)
-    {
-        try
-        {
-            await _orderService.UpdateOrderStatusAsync(orderId, newStatus);
-            await _hubContext.Clients.All.SendAsync("ReceiveUpdate", "OrderStatusUpdated", new { OrderId = orderId, Status = newStatus });
-            return Ok($"✅ Order {orderId} status updated to {newStatus}.");
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"❌ Error: {ex.Message}");
-        }
-    }
+
+    //[HttpPut("UpdateOrderStatus/{orderId}/status")]
+    //public async Task<IActionResult> UpdateOrderStatus(int orderId, [FromForm] Models.Models.OrderStatus newStatus)
+    //{
+    //    try
+    //    {
+    //        await _orderService.UpdateOrderStatusAsync(orderId, newStatus);
+    //        await _hubContext.Clients.All.SendAsync("ReceiveUpdate", "OrderStatusUpdated", new { OrderId = orderId, Status = newStatus });
+    //        return Ok($"✅ Order {orderId} status updated to {newStatus}.");
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        return StatusCode(500, $"❌ Error: {ex.Message}");
+    //    }
+    //}
     [HttpGet("GetAllReservations")]
     public async Task<IActionResult> GetAllReservations([FromQuery] Models.Models.ReservationStatus? status, [FromQuery] int restaurantId, [FromQuery] int page = 1)
     {

@@ -362,8 +362,6 @@ namespace RestaurantManagementSystem.Controllers
         }
 
 
-
-
         [HttpPost("CreateReview")]
         public async Task<ActionResult> CreateReview([FromBody] Review review)
         {

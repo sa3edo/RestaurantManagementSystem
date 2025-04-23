@@ -61,7 +61,7 @@ public class RestaurantManagerController : ControllerBase
     }
 
     // ------------------------ Restaurant Management ------------------------
-    
+
 
     [HttpGet("GetRestaurant")]
     public async Task<IActionResult> GetRestaurant([FromQuery] string? search, [FromQuery] int pageNumber = 1)
@@ -348,7 +348,7 @@ public class RestaurantManagerController : ControllerBase
     }
 
     [HttpPut("orders/{orderId}/UpdateOrderStatus")]
-    public async Task<IActionResult> UpdateOrderStatus(int orderId,OrderStatus newStatus)
+    public async Task<IActionResult> UpdateOrderStatus(int orderId, OrderStatus newStatus)
     {
         try
         {
@@ -407,7 +407,7 @@ public class RestaurantManagerController : ControllerBase
                     .ToList();
             }
 
-            
+
             var totalCount = reservations.Count();
             var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
@@ -777,6 +777,7 @@ public class RestaurantManagerController : ControllerBase
             return StatusCode(500, new { Success = false, Message = ex.Message });
         }
     }
+    [HttpGet("GetRestaurantReview")]
     public async Task<IActionResult> GetRestaurantReview(int RestID, [FromQuery] int page = 1)
     {
         try

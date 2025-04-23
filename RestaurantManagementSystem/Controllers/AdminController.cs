@@ -631,6 +631,7 @@ public class AdminController : ControllerBase
             });
         }
     }
+    [HttpGet("GetRestaurantReview")]
     public async Task<IActionResult> GetRestaurantReview(int RestID, [FromQuery] int page = 1)
     {
         try

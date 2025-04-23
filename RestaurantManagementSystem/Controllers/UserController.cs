@@ -323,6 +323,9 @@ namespace RestaurantManagementSystem.Controllers
             {
                 ReservationID = res.ReservationID,
                 RestaurantName = res.Restaurant?.Name,
+                StartTime = res.TimeSlot.StartTime,
+                EndTime = res.TimeSlot.EndTime,
+                TableId=res.TableId,
                 ReservationDate = res.ReservationDate,
                 Status=res.Status
             });

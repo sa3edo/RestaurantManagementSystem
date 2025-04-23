@@ -590,45 +590,62 @@ public class AdminController : ControllerBase
     //    }
     //}
     [HttpGet("GetAllReservations")]
-    public async Task<IActionResult> GetAllReservations([FromQuery] Models.Models.ReservationStatus? status, [FromQuery] int restaurantId, [FromQuery] int page = 1)
+    public async Task<IActionResult> GetAllReservationByRestaurant(
+     int restaurantId,
+     string? search = null,
+     int pageNumber = 1
+     )
     {
+        int pageSize = 15;
         try
         {
-            if (restaurantId <= 0)
-                return BadRequest("Invalid restaurant ID.");
+            var restaurant = await _restaurantService.GetRestaurantByIdAsync(restaurantId);
+            if (restaurant == null)
+                return NotFound(new { Message = $"Restaurant with ID {restaurantId} not found." });
 
-            int pageSize = 10;
             var reservations = await _reservationService.GetReservationsByRestaurantAsync(restaurantId);
-            if (status.HasValue)
+
+            // Apply search by email if provided
+            if (!string.IsNullOrEmpty(search))
             {
-                reservations = reservations.Where(r => r.Status.ToString().Equals(status.Value.ToString(), StringComparison.OrdinalIgnoreCase));
+                reservations = reservations
+                    .Where(r => r.Customer != null && r.Customer.Email.ToLower().Contains(search.ToLower()))
+                    .ToList();
             }
 
-            int totalCount = reservations.Count();
-            var paginatedReservations = reservations
-                .Skip((page - 1) * pageSize)
+
+            var totalCount = reservations.Count();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            var pagedReservations = reservations
+                .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
+                .Select(r => new
+                {
+                    ReservationID = r.ReservationID,
+                    RestaurantName = r.Restaurant.Name,
+                    StartDate = r.TimeSlot.StartTime,
+                    EndDate = r.TimeSlot.EndTime,
+                    TableId = r.TableId,
+                    ReservationDate = r.ReservationDate,
+                    CreatedAt = r.CreatedAt,
+                    Status = r.Status,
+                    CustomerEmail = r.Customer?.Email
+                })
                 .ToList();
 
             return Ok(new
             {
-                Success = true,
-                Message = "Reservations fetched successfully.",
-                TotalCount = totalCount,
-                Page = page,
+                PageNumber = pageNumber,
                 PageSize = pageSize,
-                Data = paginatedReservations
+                TotalCount = totalCount,
+                TotalPages = totalPages,
+                Data = pagedReservations
             });
         }
         catch (Exception ex)
         {
-
-            return StatusCode(500, new
-            {
-                Success = false,
-                Message = "An error occurred while fetching reservations.",
-                Error = ex.Message
-            });
+            return StatusCode(500, new { Message = "An error occurred while retrieving reservations.", Error = ex.Message });
         }
     }
     [HttpGet("GetRestaurantReview")]

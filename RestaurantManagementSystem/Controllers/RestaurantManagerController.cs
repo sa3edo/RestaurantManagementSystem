@@ -417,8 +417,9 @@ public class RestaurantManagerController : ControllerBase
                 .Select(r => new
                 {
                     ReservationID = r.ReservationID,
-                    RestaurantID = r.RestaurantID,
-                    TimeSlotID = r.TimeSlotID,
+                    RestaurantName = r.Restaurant.Name,
+                    StartDate = r.TimeSlot.StartTime,
+                    EndDate = r.TimeSlot.EndTime,
                     TableId = r.TableId,
                     ReservationDate = r.ReservationDate,
                     CreatedAt = r.CreatedAt,
@@ -450,13 +451,14 @@ public class RestaurantManagerController : ControllerBase
         var result = new
         {
             ReservationID = reservations.ReservationID,
-            CustomerEmail = reservations.Customer?.Email,
-            RestaurantName = reservations.Restaurant?.Name,
-            TimeSlotID = reservations.TimeSlotID,
+            RestaurantName = reservations.Restaurant.Name,
+            StartDate = reservations.TimeSlot.StartTime,
+            EndDate = reservations.TimeSlot.EndTime,
             TableId = reservations.TableId,
             ReservationDate = reservations.ReservationDate,
             CreatedAt = reservations.CreatedAt,
             Status = reservations.Status,
+            CustomerEmail = reservations.Customer?.Email
         };
         return Ok(result);
     }

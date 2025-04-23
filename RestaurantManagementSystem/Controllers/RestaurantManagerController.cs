@@ -418,8 +418,8 @@ public class RestaurantManagerController : ControllerBase
                 {
                     ReservationID = r.ReservationID,
                     RestaurantName = r.Restaurant.Name,
-                    StartDate = r.TimeSlot.StartTime,
-                    EndDate = r.TimeSlot.EndTime,
+                    StartTime = r.TimeSlot?.StartTime.ToString("HH:mm"),
+                    EndTime = r.TimeSlot?.EndTime.ToString("HH:mm"),
                     TableId = r.TableId,
                     ReservationDate = r.ReservationDate,
                     CreatedAt = r.CreatedAt,
@@ -452,8 +452,8 @@ public class RestaurantManagerController : ControllerBase
         {
             ReservationID = reservations.ReservationID,
             RestaurantName = reservations.Restaurant.Name,
-            StartDate = reservations.TimeSlot.StartTime,
-            EndDate = reservations.TimeSlot.EndTime,
+            StartTime = reservations.TimeSlot?.StartTime.ToString("HH:mm"),
+            EndTime = reservations.TimeSlot?.EndTime.ToString("HH:mm"),
             TableId = reservations.TableId,
             ReservationDate = reservations.ReservationDate,
             CreatedAt = reservations.CreatedAt,

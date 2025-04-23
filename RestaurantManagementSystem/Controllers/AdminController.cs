@@ -624,8 +624,8 @@ public class AdminController : ControllerBase
                 {
                     ReservationID = r.ReservationID,
                     RestaurantName = r.Restaurant.Name,
-                    StartDate = r.TimeSlot.StartTime,
-                    EndDate = r.TimeSlot.EndTime,
+                    StartTime = r.TimeSlot?.StartTime.ToString("HH:mm"),
+                    EndTime = r.TimeSlot?.EndTime.ToString("HH:mm"),
                     TableId = r.TableId,
                     ReservationDate = r.ReservationDate,
                     CreatedAt = r.CreatedAt,

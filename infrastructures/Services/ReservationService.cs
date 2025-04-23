@@ -27,10 +27,10 @@ namespace infrastructures.Services
         }
 
         public async Task<IEnumerable<Reservation>> GetReservationsByRestaurantAsync(int restaurantId) =>
-            await _unitOfWork.reservation.GetAsync(includeProps:[e=>e.Customer],expression: r => r.RestaurantID == restaurantId);
+            await _unitOfWork.reservation.GetAsync(includeProps:[e => e.Restaurant,e=>e.Customer,e => e.TimeSlot],expression: r => r.RestaurantID == restaurantId);
 
         public async Task<Reservation?> GetReservationByIdAsync(int reservationId) =>
-            await _unitOfWork.reservation.GetOneAsync([e=>e.Restaurant],expression: r => r.ReservationID == reservationId);
+            await _unitOfWork.reservation.GetOneAsync([e=>e.Restaurant, e => e.Customer, e=>e.TimeSlot],expression: r => r.ReservationID == reservationId);
         public async Task<Reservation> CreateReservationAsync(Reservation reservation)
         {
             var existingReservation = await _unitOfWork.reservation.GetOneAsync(expression: r =>
@@ -156,7 +156,7 @@ namespace infrastructures.Services
 
         public async Task<IEnumerable<Reservation>> GetUserReservations(string UserId = "")
         {
-            return await _unitOfWork.reservation.GetAsync(expression: e => e.UserID == UserId);
+            return await _unitOfWork.reservation.GetAsync([e=>e.Restaurant,e=>e.TimeSlot],expression: e => e.UserID == UserId);
         }
     }
 

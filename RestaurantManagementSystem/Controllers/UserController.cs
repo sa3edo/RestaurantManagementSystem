@@ -318,8 +318,18 @@ namespace RestaurantManagementSystem.Controllers
         {
             string userId = GetUserId();
             var reservations = await _reservationService.GetUserReservations(userId);
-            return Ok(reservations);
+
+            var result = reservations.Select(res => new
+            {
+                ReservationID = res.ReservationID,
+                RestaurantName = res.Restaurant?.Name,
+                ReservationDate = res.ReservationDate,
+                Status=res.Status
+            });
+
+            return Ok(result);
         }
+
         [HttpGet("GetReservationById")]
         public async Task<ActionResult> GetReservationById(int ReservationId)
         {

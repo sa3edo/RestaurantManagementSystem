@@ -72,6 +72,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         .WithMany()
         .HasForeignKey(r => r.UserID)
         .OnDelete(DeleteBehavior.Cascade);
+
         builder.Entity<Table>()
             .HasOne(t => t.Restaurant)
             .WithMany(r => r.Tables)

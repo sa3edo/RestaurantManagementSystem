@@ -151,10 +151,11 @@ namespace RestaurantManagementSystem.Controllers
                     o.CreatedAt.Date == today);
 
             // ✅ لو عنده أوردر النهاردة، امنعه
-            if (existingOrder.Status == OrderStatus.Pending)
+            if (existingOrder != null && existingOrder.Status == OrderStatus.Pending)
             {
-                return BadRequest("You have already placed an order .");
+                return BadRequest("You have already placed an order.");
             }
+
 
             // ✅ لو مفيش أوردر، أنشئ واحد جديد
             var order = new Order

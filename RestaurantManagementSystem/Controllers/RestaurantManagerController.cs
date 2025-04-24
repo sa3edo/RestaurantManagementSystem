@@ -444,7 +444,7 @@ public class RestaurantManagerController : ControllerBase
     }
 
 
-    [HttpGet("GetReservationById/{reservationId}")]
+    [HttpGet("GetReservationById/{ReservationId}")]
     public async Task<ActionResult> GetReservationById(int ReservationId)
     {
         var reservations = await _reservationService.GetReservationByIdAsync(ReservationId);

@@ -51,13 +51,13 @@ namespace RestaurantManagementSystem.Controllers
                 PaymentMethodTypes = new List<string> { "card" },
                 LineItems = new List<SessionLineItemOptions>(),
                 Mode = "payment",
-                SuccessUrl = $"http://localhost:4200/payment/success?orderId={orderId}", // Your frontend success URL
-                CancelUrl = $"http://localhost:4200/orders/{orderId}", // Your frontend cancel URL
+                SuccessUrl = $"http://localhost:4200/payment/success", // Removed orderId from URL
+                CancelUrl = $"http://localhost:4200/orders/{orderId}",
                 CustomerEmail = (await _userManager.GetUserAsync(User))?.Email,
                 Metadata = new Dictionary<string, string>
-                {
-                    { "orderId", orderId.ToString() }
-                }
+        {
+            { "orderId", orderId.ToString() } // Retained orderId in Metadata
+        }
             };
 
             foreach (var item in orderItems)
@@ -87,27 +87,61 @@ namespace RestaurantManagementSystem.Controllers
             return Ok(new { sessionId = session.Id, url = session.Url });
         }
 
+
         [HttpGet("PaymentSuccess")]
-        public async Task<IActionResult> PaymentSuccess(int orderId)
+        public async Task<IActionResult> PaymentSuccess()
         {
+            var sessionId = Request.Query["session_id"];
+            var service = new SessionService();
+            var session = service.Get(sessionId);
+
+            if (session == null)
+                return BadRequest(new { message = "Session not found" });
+
+            // Extract orderId from session metadata
+            if (!session.Metadata.ContainsKey("orderId"))
+                return BadRequest(new { message = "Order ID not found in session metadata" });
+
+            var orderId = int.Parse(session.Metadata["orderId"]);
+
             var userId = _userManager.GetUserId(User);
             var order = await _orderService.GetOrderByIdAsync(orderId);
 
             if (order == null || order.UserID.ToString() != userId)
                 return Unauthorized(new { message = "Order not found or doesn't belong to user" });
 
-            
+            // Update the order status to Preparing
             order.Status = OrderStatus.Preparing;
             await _orderService.UpdateOrderAsync(order);
-          
+
             return Ok(new { message = "Payment successful", orderId });
         }
 
+
         [HttpGet("PaymentCancel")]
-        public IActionResult PaymentCancel(int orderId)
+        public async Task<IActionResult> PaymentCancel()
         {
-            _orderService.CancelOrderAsync(orderId);
+            var sessionId = Request.Query["session_id"];
+            var service = new SessionService();
+            var session = service.Get(sessionId);
+
+            if (session == null)
+                return BadRequest(new { message = "Session not found" });
+
+            if (!session.Metadata.ContainsKey("orderId"))
+                return BadRequest(new { message = "Order ID not found in session metadata" });
+
+            var orderId = int.Parse(session.Metadata["orderId"]);
+
+            var order = await _orderService.GetOrderByIdAsync(orderId);
+            if (order == null)
+                return BadRequest(new { message = "Order not found" });
+
+            // Cancel the order
+            await _orderService.CancelOrderAsync(orderId);
+
             return Ok(new { message = "Payment canceled", orderId });
         }
+
     }
 }

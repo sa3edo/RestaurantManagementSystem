@@ -37,7 +37,7 @@ namespace Utility.Chat
                 IsRead = false
             };
 
-            unitOfWork.Chat.CreateAsync(chatMessage);
+            await unitOfWork.Chat.CreateAsync(chatMessage);
             await unitOfWork.CompleteAsync();
 
             await Clients.User(receiverId).SendAsync("ReceiveMessage", chatMessage);

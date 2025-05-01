@@ -15,7 +15,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     DbSet<MenuItem> MenuItems { get; set; }
     DbSet<OrderItem> OrderItems { get; set; }
    public DbSet<Models.Models.Order> Orders { get; set; }
-    DbSet<Models.Chat.ChatMessage> chatMessages { get; set; }
+   public DbSet<Models.Chat.ChatMessage> chatMessages { get; set; }
     DbSet<Reservation> Reservations { get; set; }
     DbSet<Restaurant> Restaurants { get; set; }
     DbSet<Review> Reviews { get; set; }

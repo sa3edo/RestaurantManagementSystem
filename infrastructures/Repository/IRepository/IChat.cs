@@ -1,4 +1,5 @@
 ﻿using Models.Chat;
+using RestaurantManagementSystem.Models;
 using RestaurantManagementSystem.Repository.IRepository;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,8 @@ namespace infrastructures.Repository.IRepository
         Task<int> GetConversationCountAsync(string userId1, string userId2);
         Task<bool> MarkAsReadAsync(int messageId, string userId);
         Task<int> GetUnreadCountAsync(string userId);
+        Task<IEnumerable<ApplicationUser>> GetUsersWhoChattedWithAsync(string managerId);
+        Task<IEnumerable<ChatMessage>> GetMessagesBetweenAsync(string userId1, string userId2);
     }
 }
 

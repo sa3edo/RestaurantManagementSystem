@@ -1,14 +1,9 @@
-﻿using infrastructures.Repository.IRepository;
+﻿using infrastructures.UnitOfWork;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Models.Chat;
-using RestaurantManagementSystem.Repository.IRepository;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Utility.Chat;
 
 namespace RestaurantManagementSystem.Controllers
@@ -19,17 +14,43 @@ namespace RestaurantManagementSystem.Controllers
     public class ChatController : ControllerBase
     {
         private readonly IHubContext<ChatHub> _hubContext;
-        private readonly IChat _chatRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<ChatController> _logger;
 
         public ChatController(
             IHubContext<ChatHub> hubContext,
-            IChat chatRepository,
+            IUnitOfWork unitOfWork,
             ILogger<ChatController> logger)
         {
             _hubContext = hubContext;
-            _chatRepository = chatRepository;
+            _unitOfWork = unitOfWork;
             _logger = logger;
+        }
+
+        [HttpGet("chat-users")]
+        public async Task<IActionResult> GetChatUsersForManager()
+        {
+            var managerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(managerId))
+                return Unauthorized();
+
+            var users = await _unitOfWork.Chat.GetUsersWhoChattedWithAsync(managerId);
+
+            return Ok(users);
+        }
+
+        [HttpGet("chat-history/{userId}")]
+        public async Task<IActionResult> GetChatHistoryWithUser(string userId)
+        {
+            var managerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(managerId))
+                return Unauthorized();
+
+            var messages = await _unitOfWork.Chat.GetMessagesBetweenAsync(managerId, userId);
+
+            return Ok(messages);
         }
 
         [HttpPost("send")]
@@ -40,14 +61,10 @@ namespace RestaurantManagementSystem.Controllers
                 var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
                 if (string.IsNullOrEmpty(currentUserId))
-                {
                     return Unauthorized(new ApiResponse(401, "User not authenticated"));
-                }
 
                 if (string.IsNullOrWhiteSpace(messageDto.Content))
-                {
                     return BadRequest(new ApiResponse(400, "Message content cannot be empty"));
-                }
 
                 var chatMessage = new ChatMessage
                 {
@@ -58,10 +75,9 @@ namespace RestaurantManagementSystem.Controllers
                     IsRead = false
                 };
 
-                await _chatRepository.CreateAsync(chatMessage);
-                await _chatRepository.CommitAsync();
+                await _unitOfWork.Chat.CreateAsync(chatMessage);
+                await _unitOfWork.CompleteAsync();
 
-                // Send via SignalR
                 await _hubContext.Clients.User(messageDto.ReceiverId)
                     .SendAsync("ReceiveMessage", chatMessage);
 
@@ -92,12 +108,10 @@ namespace RestaurantManagementSystem.Controllers
                 var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
                 if (string.IsNullOrEmpty(currentUserId))
-                {
                     return Unauthorized(new ApiResponse(401, "User not authenticated"));
-                }
 
-                var messages = await _chatRepository.GetConversationAsync(currentUserId, otherUserId, page, pageSize);
-                var totalCount = await _chatRepository.GetConversationCountAsync(currentUserId, otherUserId);
+                var messages = await _unitOfWork.Chat.GetConversationAsync(currentUserId, otherUserId, page, pageSize);
+                var totalCount = await _unitOfWork.Chat.GetConversationCountAsync(currentUserId, otherUserId);
 
                 return Ok(new ApiResponse(200, "Conversation retrieved successfully", new
                 {
@@ -133,16 +147,13 @@ namespace RestaurantManagementSystem.Controllers
             {
                 var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                var success = await _chatRepository.MarkAsReadAsync(messageId, currentUserId);
-                await _chatRepository.CommitAsync();
+                var success = await _unitOfWork.Chat.MarkAsReadAsync(messageId, currentUserId);
+                await _unitOfWork.CompleteAsync();
 
                 if (!success)
-                {
                     return NotFound(new ApiResponse(404, "Message not found or you're not the recipient"));
-                }
 
-                // Notify sender that message was read
-                var message = await _chatRepository.GetOneAsync(null, m => m.Id == messageId);
+                var message = await _unitOfWork.Chat.GetOneAsync(null, m => m.Id == messageId);
                 if (message != null)
                 {
                     await _hubContext.Clients.User(message.SenderId)
@@ -165,7 +176,7 @@ namespace RestaurantManagementSystem.Controllers
             {
                 var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                var count = await _chatRepository.GetUnreadCountAsync(currentUserId);
+                var count = await _unitOfWork.Chat.GetUnreadCountAsync(currentUserId);
 
                 return Ok(new ApiResponse(200, "Unread count retrieved", new
                 {

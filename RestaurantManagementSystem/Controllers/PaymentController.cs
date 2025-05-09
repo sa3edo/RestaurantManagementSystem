@@ -30,8 +30,8 @@ namespace RestaurantManagementSystem.Controllers
             _userManager = userManager;
         }
 
-        [HttpPost("CreateCheckoutSession/{orderId}")]
-        public async Task<IActionResult> CreateCheckoutSession(int orderId)
+        [HttpPost("CreateCheckoutSession")]
+        public async Task<IActionResult> CreateCheckoutSession([FromBody] int orderId)
         {
             var userId = _userManager.GetUserId(User);
             var order = await _orderService.GetOrderByIdAsync(orderId);
@@ -40,7 +40,7 @@ namespace RestaurantManagementSystem.Controllers
                 return Unauthorized(new { message = "Order not found or doesn't belong to user" });
 
             if (order.Status != OrderStatus.Pending)
-                return BadRequest(new { message = "Order is already processed" });
+                return BadRequest(new { message = "Order is already processed or not pending" });
 
             var orderItems = await _orderItemService.GetItemsByOrderAsync(orderId);
             if (orderItems == null || !orderItems.Any())
@@ -51,12 +51,12 @@ namespace RestaurantManagementSystem.Controllers
                 PaymentMethodTypes = new List<string> { "card" },
                 LineItems = new List<SessionLineItemOptions>(),
                 Mode = "payment",
-                SuccessUrl = $"http://localhost:4200/payment/success", // Removed orderId from URL
+                SuccessUrl = $"http://localhost:4200/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
                 CancelUrl = $"http://localhost:4200/orders/{orderId}",
                 CustomerEmail = (await _userManager.GetUserAsync(User))?.Email,
                 Metadata = new Dictionary<string, string>
         {
-            { "orderId", orderId.ToString() } // Retained orderId in Metadata
+            { "orderId", orderId.ToString() }
         }
             };
 
@@ -87,7 +87,6 @@ namespace RestaurantManagementSystem.Controllers
             return Ok(new { sessionId = session.Id, url = session.Url });
         }
 
-
         [HttpGet("PaymentSuccess")]
         public async Task<IActionResult> PaymentSuccess()
         {
@@ -98,25 +97,27 @@ namespace RestaurantManagementSystem.Controllers
             if (session == null)
                 return BadRequest(new { message = "Session not found" });
 
-            // Extract orderId from session metadata
             if (!session.Metadata.ContainsKey("orderId"))
                 return BadRequest(new { message = "Order ID not found in session metadata" });
 
             var orderId = int.Parse(session.Metadata["orderId"]);
-
             var userId = _userManager.GetUserId(User);
             var order = await _orderService.GetOrderByIdAsync(orderId);
 
             if (order == null || order.UserID.ToString() != userId)
                 return Unauthorized(new { message = "Order not found or doesn't belong to user" });
 
-            // Update the order status to Preparing
-            order.Status = OrderStatus.Preparing;
-            await _orderService.UpdateOrderAsync(order);
+            if (session.PaymentStatus != "paid")
+                return BadRequest(new { message = "Payment was not successful" });
+
+            if (order.Status == OrderStatus.Pending)
+            {
+                order.Status = OrderStatus.Preparing;
+                await _orderService.UpdateOrderAsync(order);
+            }
 
             return Ok(new { message = "Payment successful", orderId });
         }
-
 
         [HttpGet("PaymentCancel")]
         public async Task<IActionResult> PaymentCancel()
@@ -132,12 +133,10 @@ namespace RestaurantManagementSystem.Controllers
                 return BadRequest(new { message = "Order ID not found in session metadata" });
 
             var orderId = int.Parse(session.Metadata["orderId"]);
-
             var order = await _orderService.GetOrderByIdAsync(orderId);
             if (order == null)
                 return BadRequest(new { message = "Order not found" });
 
-            // Cancel the order
             await _orderService.CancelOrderAsync(orderId);
 
             return Ok(new { message = "Payment canceled", orderId });

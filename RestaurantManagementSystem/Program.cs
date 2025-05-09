@@ -15,7 +15,8 @@ using Utility.Email;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Utility.SignalR;
 using Utility.Chat;
-
+using RestaurantManagementSystem.Services;
+using RestaurantManagementSystem.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -72,6 +73,7 @@ builder.Services.AddScoped<IReviewService, infrastructures.Services.ReviewServic
 builder.Services.AddScoped<ITimeSlotService, TimeSlotService>();
 builder.Services.AddScoped<ITableService, TableService>();
 builder.Services.AddScoped<IMenuItemService, MenuItemService>();
+builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddSignalR();
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
@@ -126,7 +128,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 app.MapHub<AdminHub>("/adminHub");
-app.MapHub<ChatHub>("/chatHub");
+app.MapHub<RestaurantManagementSystem.Hubs.ChatHub>("/chatHub");
 app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
 

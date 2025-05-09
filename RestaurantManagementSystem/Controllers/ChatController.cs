@@ -81,7 +81,7 @@ namespace RestaurantManagementSystem.Controllers
         }
 
         [HttpGet("conversations/{conversationId}/messages")]
-        public async Task<ActionResult<List<ChatMessage>>> GetMessages(string conversationId)
+        public async Task<ActionResult<List<ChatMessage>>> GetMessages(int conversationId)
         {
             try
             {
@@ -149,7 +149,7 @@ namespace RestaurantManagementSystem.Controllers
         }
 
         [HttpPost("conversations/{conversationId}/read")]
-        public async Task<ActionResult> MarkAsRead(string conversationId)
+        public async Task<ActionResult> MarkAsRead(int conversationId)
         {
             try
             {

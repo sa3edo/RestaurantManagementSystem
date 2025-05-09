@@ -4,7 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Utility.Chat;
+using System.Threading;
+using RestaurantManagementSystem.Hubs;
+
 
 namespace RestaurantManagementSystem.Services
 {
@@ -13,17 +15,18 @@ namespace RestaurantManagementSystem.Services
         Task<Conversation> GetOrCreateConversation(string vendorId, string userId);
         Task<List<Conversation>> GetUserConversations(string userId);
         Task<List<Conversation>> GetVendorConversations(string vendorId);
-        Task<List<ChatMessage>> GetConversationMessages(string conversationId, string userId);
+        Task<List<ChatMessage>> GetConversationMessages(int conversationId, string userId);
         Task<ChatMessage> SendMessage(string senderId, string receiverId, string content);
-        Task MarkMessagesAsRead(string conversationId, string userId);
+        Task MarkMessagesAsRead(int conversationId, string userId);
     }
 
     public class ChatService : IChatService
     {
         private readonly IHubContext<ChatHub> _hubContext;
-
-        private static List<Conversation> _conversations = new List<Conversation>();
-        private static List<ChatMessage> _messages = new List<ChatMessage>();
+        private static readonly List<Conversation> _conversations = new List<Conversation>();
+        private static readonly List<ChatMessage> _messages = new List<ChatMessage>();
+        private static readonly SemaphoreSlim _messageLock = new SemaphoreSlim(1, 1);
+        private static readonly SemaphoreSlim _conversationLock = new SemaphoreSlim(1, 1);
 
         public ChatService(IHubContext<ChatHub> hubContext)
         {
@@ -37,25 +40,31 @@ namespace RestaurantManagementSystem.Services
             if (string.IsNullOrEmpty(userId))
                 throw new ArgumentException("User ID cannot be empty", nameof(userId));
 
-            // Try to find existing conversation
-            var conversation = _conversations.FirstOrDefault(c => c.VendorId == vendorId && c.UserId == userId);
-
-            // If no conversation, create a new one
-            if (conversation == null)
+            await _conversationLock.WaitAsync();
+            try
             {
-                conversation = new Conversation
+                var conversation = _conversations.FirstOrDefault(c => 
+                    c.VendorId == vendorId && c.UserId == userId);
+
+                if (conversation == null)
                 {
-                    Id = Guid.NewGuid().ToString(),
-                    VendorId = vendorId,
-                    UserId = userId,
-                    CreatedAt = DateTime.UtcNow,
-                    LastMessageAt = DateTime.UtcNow
-                };
+                    conversation = new Conversation
+                    {
+                        Id = _conversations.Count + 1,
+                        VendorId = vendorId,
+                        UserId = userId,
+                        CreatedAt = DateTime.UtcNow,
+                        LastMessageAt = DateTime.UtcNow
+                    };
+                    _conversations.Add(conversation);
+                }
 
-                _conversations.Add(conversation);
+                return conversation;
             }
-
-            return conversation;
+            finally
+            {
+                _conversationLock.Release();
+            }
         }
 
         public async Task<List<Conversation>> GetUserConversations(string userId)
@@ -63,10 +72,18 @@ namespace RestaurantManagementSystem.Services
             if (string.IsNullOrEmpty(userId))
                 throw new ArgumentException("User ID cannot be empty", nameof(userId));
 
-            return _conversations
-                .Where(c => c.UserId == userId)
-                .OrderByDescending(c => c.LastMessageAt)
-                .ToList();
+            await _conversationLock.WaitAsync();
+            try
+            {
+                return _conversations
+                    .Where(c => c.UserId == userId)
+                    .OrderByDescending(c => c.LastMessageAt)
+                    .ToList();
+            }
+            finally
+            {
+                _conversationLock.Release();
+            }
         }
 
         public async Task<List<Conversation>> GetVendorConversations(string vendorId)
@@ -74,31 +91,55 @@ namespace RestaurantManagementSystem.Services
             if (string.IsNullOrEmpty(vendorId))
                 throw new ArgumentException("Vendor ID cannot be empty", nameof(vendorId));
 
-            return _conversations
-                .Where(c => c.VendorId == vendorId)
-                .OrderByDescending(c => c.LastMessageAt)
-                .ToList();
+            await _conversationLock.WaitAsync();
+            try
+            {
+                return _conversations
+                    .Where(c => c.VendorId == vendorId)
+                    .OrderByDescending(c => c.LastMessageAt)
+                    .ToList();
+            }
+            finally
+            {
+                _conversationLock.Release();
+            }
         }
 
-        public async Task<List<ChatMessage>> GetConversationMessages(string conversationId, string userId)
+        public async Task<List<ChatMessage>> GetConversationMessages(int conversationId, string userId)
         {
-            if (string.IsNullOrEmpty(conversationId))
+            if (conversationId <= 0)
                 throw new ArgumentException("Invalid conversation ID", nameof(conversationId));
             if (string.IsNullOrEmpty(userId))
                 throw new ArgumentException("User ID cannot be empty", nameof(userId));
 
-            var conversation = _conversations.FirstOrDefault(c => c.Id == conversationId);
+            Conversation conversation;
+            await _conversationLock.WaitAsync();
+            try
+            {
+                conversation = _conversations.FirstOrDefault(c => c.Id == conversationId);
+                if (conversation == null)
+                    throw new InvalidOperationException("Conversation not found");
 
-            if (conversation == null)
-                throw new InvalidOperationException("Conversation not found");
+                if (conversation.UserId != userId && conversation.VendorId != userId)
+                    throw new UnauthorizedAccessException("User is not authorized to access this conversation");
+            }
+            finally
+            {
+                _conversationLock.Release();
+            }
 
-            if (conversation.UserId != userId && conversation.VendorId != userId)
-                throw new UnauthorizedAccessException("User is not authorized to access this conversation");
-
-            return _messages
-                .Where(m => m.ConversationId == conversationId)
-                .OrderBy(m => m.SentAt)
-                .ToList();
+            await _messageLock.WaitAsync();
+            try
+            {
+                return _messages
+                    .Where(m => m.ConversationId == conversationId)
+                    .OrderBy(m => m.SentAt)
+                    .ToList();
+            }
+            finally
+            {
+                _messageLock.Release();
+            }
         }
 
         public async Task<ChatMessage> SendMessage(string senderId, string receiverId, string content)
@@ -110,94 +151,98 @@ namespace RestaurantManagementSystem.Services
             if (string.IsNullOrEmpty(content))
                 throw new ArgumentException("Message content cannot be empty", nameof(content));
 
-            var conversation = _conversations.FirstOrDefault(c =>
-                (c.UserId == senderId && c.VendorId == receiverId) ||
-                (c.UserId == receiverId && c.VendorId == senderId));
+            var conversation = await GetOrCreateConversation(senderId, receiverId);
+            ChatMessage message;
 
-            // If no conversation, create one
-            if (conversation == null)
-            {
-                conversation = new Conversation
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    VendorId = receiverId,
-                    UserId = senderId,
-                    CreatedAt = DateTime.UtcNow,
-                    LastMessageAt = DateTime.UtcNow
-                };
-
-                _conversations.Add(conversation);
-            }
-
-            var message = new ChatMessage
-            {
-                Id = Guid.NewGuid().ToString(),
-                ConversationId = conversation.Id,
-                SenderId = senderId,
-                ReceiverId = receiverId,
-                Content = content,
-                SentAt = DateTime.UtcNow,
-                IsRead = false
-            };
-
-            _messages.Add(message);
-            conversation.LastMessageAt = DateTime.UtcNow;
-
-            // Notify receiver via SignalR
+            await _messageLock.WaitAsync();
             try
             {
-                await _hubContext.Clients.User(receiverId)
-                    .SendAsync("ReceiveMessage", conversation.Id, senderId, content);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error sending SignalR notification: {ex.Message}");
-            }
+                message = new ChatMessage
+                {
+                    Id = _messages.Count + 1,
+                    ConversationId = conversation.Id,
+                    SenderId = senderId,
+                    ReceiverId = receiverId,
+                    Content = content,
+                    SentAt = DateTime.UtcNow,
+                    IsRead = false
+                };
 
-            return message;
+                _messages.Add(message);
+                conversation.LastMessageAt = DateTime.UtcNow;
+
+                try
+                {
+                    await _hubContext.Clients
+                        .User(receiverId)
+                        .SendAsync("ReceiveMessage", message);
+                }
+                catch (Exception ex)
+                {
+                    // Log the error but don't throw - we still want to save the message
+                    Console.WriteLine($"Error sending SignalR notification: {ex.Message}");
+                }
+
+                return message;
+            }
+            finally
+            {
+                _messageLock.Release();
+            }
         }
 
-        public async Task MarkMessagesAsRead(string conversationId, string userId)
+        public async Task MarkMessagesAsRead(int conversationId, string userId)
         {
-            if (string.IsNullOrEmpty(conversationId))
+            if (conversationId <= 0)
                 throw new ArgumentException("Invalid conversation ID", nameof(conversationId));
             if (string.IsNullOrEmpty(userId))
                 throw new ArgumentException("User ID cannot be empty", nameof(userId));
 
-            var conversation = _conversations.FirstOrDefault(c => c.Id == conversationId);
-
-            if (conversation == null)
-                throw new InvalidOperationException("Conversation not found");
-
-            if (conversation.UserId != userId && conversation.VendorId != userId)
-                throw new UnauthorizedAccessException("User is not authorized to access this conversation");
-
-            var unreadMessages = _messages
-                .Where(m => m.ConversationId == conversationId && m.ReceiverId == userId && !m.IsRead)
-                .ToList();
-
-            if (!unreadMessages.Any())
-                return;
-
-            foreach (var message in unreadMessages)
+            Conversation conversation;
+            await _conversationLock.WaitAsync();
+            try
             {
-                message.IsRead = true;
+                conversation = _conversations.FirstOrDefault(c => c.Id == conversationId);
+                if (conversation == null)
+                    throw new InvalidOperationException("Conversation not found");
+
+                if (conversation.UserId != userId && conversation.VendorId != userId)
+                    throw new UnauthorizedAccessException("User is not authorized to access this conversation");
+            }
+            finally
+            {
+                _conversationLock.Release();
             }
 
-            // Notify sender about read receipt
-            var senderId = unreadMessages.FirstOrDefault()?.SenderId;
-            if (!string.IsNullOrEmpty(senderId))
+            await _messageLock.WaitAsync();
+            try
             {
+                var unreadMessages = _messages
+                    .Where(m => m.ConversationId == conversationId && 
+                               m.ReceiverId == userId && 
+                               !m.IsRead)
+                    .ToList();
+
+                foreach (var message in unreadMessages)
+                {
+                    message.IsRead = true;
+                }
+
                 try
                 {
-                    await _hubContext.Clients.User(senderId)
-                        .SendAsync("MessageRead", conversationId);
+                    await _hubContext.Clients
+                        .User(conversation.UserId == userId ? conversation.VendorId : conversation.UserId)
+                        .SendAsync("MessagesRead", conversationId);
                 }
                 catch (Exception ex)
                 {
-                    // Log the error but don't fail the operation
-                    Console.WriteLine($"Error sending read notification: {ex.Message}");
+                    // Log the error but don't throw - we still want to mark messages as read
+                    Console.WriteLine($"Error sending SignalR notification: {ex.Message}");
                 }
+            }
+            finally
+            {
+                _messageLock.Release();
             }
         }
     }

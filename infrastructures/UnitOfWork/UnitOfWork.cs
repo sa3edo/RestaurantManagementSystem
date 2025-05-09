@@ -15,7 +15,6 @@ namespace infrastructures.UnitOfWork
         {
             _context = context;
             foodCategory = new FoodCategory(_context);
-            Chat = new ChatRepository(_context);
             menuItem = new MenuItem(_context);
             order = new Order(_context);
             orderItem = new OrderItem(_context);
@@ -37,7 +36,6 @@ namespace infrastructures.UnitOfWork
         public ITimeSlots timeSlots { get; private set; }
         public ITable table { get; private set; }
 
-        public IChat Chat { get; private set; }
 
         public int Complete() => _context.SaveChanges();
         public Task CompleteAsync() => _context.SaveChangesAsync();

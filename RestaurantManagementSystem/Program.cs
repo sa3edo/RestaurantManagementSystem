@@ -14,9 +14,7 @@ using Utility.Profiles;
 using Utility.Email;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Utility.SignalR;
-using Utility.Chat;
 using RestaurantManagementSystem.Services;
-using RestaurantManagementSystem.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -57,7 +55,6 @@ builder.Services.AddScoped<IMenuItem, MenuItem>();
 builder.Services.AddScoped<IOrder, Order>();
 builder.Services.AddScoped<IOrderItem, OrderItem>();
 builder.Services.AddScoped<IRestaurant, Restaurant>();
-builder.Services.AddScoped<IChat, ChatRepository>();
 builder.Services.AddScoped<IReview, infrastructures.Repository.Review>();
 builder.Services.AddScoped<IReservation, infrastructures.Repository.Rservation>();
 builder.Services.AddScoped<ITimeSlots, TimeSlot>();

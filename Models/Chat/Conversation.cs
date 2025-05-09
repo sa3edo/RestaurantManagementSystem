@@ -9,7 +9,7 @@ namespace Models.Chat
     public class Conversation
     {
         [Key]
-        public string Id { get; set; }
+        public int Id { get; set; }
         public string VendorId { get; set; }
         public string UserId { get; set; }
         public DateTime CreatedAt { get; set; }

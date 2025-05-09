@@ -10,8 +10,8 @@ namespace Models.Chat
     public class ChatMessage
     {
         [Key]
-        public string Id { get; set; }
-        public string? ConversationId { get; set; }
+        public int Id { get; set; }
+        public int ConversationId { get; set; }
         public string? SenderId { get; set; } 
         public string? ReceiverId { get; set; } 
         public string? Content { get; set; }

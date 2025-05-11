@@ -31,7 +31,7 @@ namespace RestaurantManagementSystem.Controllers
         }
 
         [HttpPost("CreateCheckoutSession")]
-        public async Task<IActionResult> CreateCheckoutSession([FromBody] int orderId)
+        public async Task<IActionResult> CreateCheckoutSession([FromForm] int orderId)
         {
             var userId = _userManager.GetUserId(User);
             var order = await _orderService.GetOrderByIdAsync(orderId);

@@ -90,35 +90,43 @@ namespace RestaurantManagementSystem.Controllers
         [HttpGet("PaymentSuccess")]
         public async Task<IActionResult> PaymentSuccess()
         {
-            var sessionId = Request.Query["session_id"];
-            var service = new SessionService();
-            var session = service.Get(sessionId);
-
-            if (session == null)
-                return BadRequest(new { message = "Session not found" });
-
-            if (!session.Metadata.ContainsKey("orderId"))
-                return BadRequest(new { message = "Order ID not found in session metadata" });
-
-            var orderId = int.Parse(session.Metadata["orderId"]);
-            var userId = _userManager.GetUserId(User);
-            var order = await _orderService.GetOrderByIdAsync(orderId);
-
-            if (order == null || order.UserID.ToString() != userId)
-                return Unauthorized(new { message = "Order not found or doesn't belong to user" });
-
-            if (session.PaymentStatus != "paid")
-                return BadRequest(new { message = "Payment was not successful" });
-
-            if (order.Status == OrderStatus.Pending)
+            try
             {
-                order.Status = OrderStatus.Preparing;
-                await _orderService.UpdateOrderAsync(order);
+                var sessionId = Request.Query["session_id"];
+                var service = new SessionService();
+                var session = service.Get(sessionId);
+
+                if (session == null)
+                    return BadRequest(new { message = "Session not found" });
+
+                if (!session.Metadata.ContainsKey("orderId"))
+                    return BadRequest(new { message = "Order ID not found in session metadata" });
+
+                var orderId = int.Parse(session.Metadata["orderId"]);
+                var userId = _userManager.GetUserId(User);
+                var order = await _orderService.GetOrderByIdAsync(orderId);
+
+                if (order == null || order.UserID.ToString() != userId)
+                    return Unauthorized(new { message = "Order not found or doesn't belong to user" });
+
+                if (session.PaymentStatus != "paid")
+                    return BadRequest(new { message = "Payment was not successful" });
+
+                
+                if (order.Status == OrderStatus.Pending)
+                {
+                    order.Status = OrderStatus.Preparing;
+                    var updateResult = await _orderService.UpdateOrderAsync(order);
+                }
+
+                return Ok(new { message = "Payment successful", orderId });
             }
-
-            return Ok(new { message = "Payment successful", orderId });
+            catch (Exception ex)
+            {
+                // Log the exception here
+                return StatusCode(500, new { message = "An error occurred while processing payment", error = ex.Message });
+            }
         }
-
         [HttpGet("PaymentCancel")]
         public async Task<IActionResult> PaymentCancel()
         {

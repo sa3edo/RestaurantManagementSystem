@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using infrastructures.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Models.Chat;
+using RestaurantManagementSystem.Models;
 using RestaurantManagementSystem.Services;
 using System;
 using System.Collections.Generic;
@@ -15,10 +18,12 @@ namespace RestaurantManagementSystem.Controllers
     public class ChatController : ControllerBase
     {
         private readonly IChatService _chatService;
+        private readonly RestaurantService restaurantService;
 
-        public ChatController(IChatService chatService)
+        public ChatController(IChatService chatService,RestaurantService restaurantService)
         {
             _chatService = chatService ?? throw new ArgumentNullException(nameof(chatService));
+            this.restaurantService = restaurantService;
         }
 
         [HttpGet("conversations")]
@@ -130,8 +135,10 @@ namespace RestaurantManagementSystem.Controllers
                 {
                     return Unauthorized(new { message = "User is not authenticated" });
                 }
+                var restaurant = await restaurantService.GetRestaurantByIdAsync(request.RestaurantId);
+                var Vendor = restaurant.ManagerID;
 
-                var message = await _chatService.SendMessage(senderId, request.ReceiverId, request.Content);
+                var message = await _chatService.SendMessage(senderId, Vendor, request.Content);
                 return Ok(new { 
                     success = true, 
                     data = message,
@@ -182,7 +189,8 @@ namespace RestaurantManagementSystem.Controllers
 
     public class SendMessageRequest
     {
-        public string ReceiverId { get; set; }
+        public int RestaurantId { get; set; }
         public string Content { get; set; }
     }
+
 }

@@ -1,196 +1,90 @@
-﻿using infrastructures.Services;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using RestaurantManagementSystem.Hubs;
+using infrastructures.Repository.IRepository;
 using Models.Chat;
-using RestaurantManagementSystem.Models;
-using RestaurantManagementSystem.Services;
 using System;
-using System.Collections.Generic;
-using System.Security.Claims;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace RestaurantManagementSystem.Controllers
 {
-    [Authorize]
-    [ApiController]
     [Route("api/[controller]")]
+    [ApiController]
     public class ChatController : ControllerBase
     {
-        private readonly IChatService _chatService;
-        private readonly RestaurantService restaurantService;
+        private readonly IConversation _conversationRepo;
+        private readonly IChatMessages _chatRepo;
+        private readonly IHubContext<ChatHub> _hubContext;
 
-        public ChatController(IChatService chatService,RestaurantService restaurantService)
+        public ChatController(IConversation conversationRepo, IChatMessages chatRepo, IHubContext<ChatHub> hubContext)
         {
-            _chatService = chatService ?? throw new ArgumentNullException(nameof(chatService));
-            this.restaurantService = restaurantService;
+            _conversationRepo = conversationRepo;
+            _chatRepo = chatRepo;
+            _hubContext = hubContext;
         }
 
-        [HttpGet("conversations")]
-        public async Task<ActionResult<List<Conversation>>> GetConversations()
+        // GET: api/chat/conversations/userId
+        [HttpGet("conversations/{userId}")]
+        public async Task<IActionResult> GetUserConversations(string userId)
         {
-            try
-            {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userId))
-                {
-                    return Unauthorized(new { message = "User is not authenticated" });
-                }
+            if (string.IsNullOrEmpty(userId))
+                return BadRequest("User ID is required.");
 
-                var conversations = await _chatService.GetUserConversations(userId);
-                return Ok(new { 
-                    success = true, 
-                    data = conversations,
-                    message = "Conversations retrieved successfully"
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { 
-                    success = false, 
-                    message = "Error retrieving conversations",
-                    error = ex.Message 
-                });
-            }
+            var conversations = await _conversationRepo.GetUserConversationsAsync(userId);
+            var sorted = conversations.OrderByDescending(c => c.LastMessageAt).ToList();
+
+            return Ok(sorted);
         }
 
-        [HttpGet("vendor/{vendorId}/conversations")]
-
-        public async Task<ActionResult<List<Conversation>>> GetVendorConversations(string vendorId)
+        // GET: api/chat/messages?user1=abc&user2=xyz
+        [HttpGet("messages")]
+        public async Task<IActionResult> GetMessagesBetweenUsers([FromQuery] string user1, [FromQuery] string user2)
         {
-            try
-            {
-                if (string.IsNullOrEmpty(vendorId))
-                {
-                    return BadRequest(new { 
-                        success = false, 
-                        message = "Vendor ID is required" 
-                    });
-                }
+            var conversation = await _conversationRepo.GetConversationAsync(user1, user2);
+            if (conversation == null)
+                return NotFound("Conversation not found.");
 
-                var conversations = await _chatService.GetVendorConversations(vendorId);
-                return Ok(new { 
-                    success = true, 
-                    data = conversations,
-                    message = "Vendor conversations retrieved successfully"
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { 
-                    success = false, 
-                    message = "Error retrieving vendor conversations",
-                    error = ex.Message 
-                });
-            }
+            var messages = await _chatRepo.GetMessagesByConversationIdAsync(conversation.Id);
+            var sorted = messages.OrderBy(m => m.SentAt).ToList();
+
+            return Ok(sorted);
         }
 
-        [HttpGet("conversations/{conversationId}/messages")]
-        public async Task<ActionResult<List<ChatMessage>>> GetMessages(int conversationId)
+        // POST: api/chat/send
+        [HttpPost("send")]
+        public async Task<IActionResult> SendMessage([FromBody] ChatMessage message)
         {
-            try
+            if (string.IsNullOrEmpty(message.SenderId) || string.IsNullOrEmpty(message.ReceiverId) || string.IsNullOrEmpty(message.Content))
+                return BadRequest("Sender, receiver, and message content must be provided.");
+
+            var conversation = await _conversationRepo.GetConversationAsync(message.SenderId, message.ReceiverId);
+
+            if (conversation == null)
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userId))
+                conversation = new Conversation
                 {
-                    return Unauthorized(new { message = "User is not authenticated" });
-                }
+                    VendorId = message.SenderId,
+                    UserId = message.ReceiverId,
+                    CreatedAt = DateTime.UtcNow,
+                    LastMessageAt = DateTime.UtcNow
+                };
 
-                var messages = await _chatService.GetConversationMessages(conversationId, userId);
-                return Ok(new { 
-                    success = true, 
-                    data = messages,
-                    message = "Messages retrieved successfully"
-                });
+                await _conversationRepo.CreateAsync(conversation);
+                await _conversationRepo.CommitAsync();
             }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized(new { message = "You are not authorized to access this conversation" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { 
-                    success = false, 
-                    message = "Error retrieving messages",
-                    error = ex.Message 
-                });
-            }
-        }
 
-        [HttpPost("messages")]
-        public async Task<ActionResult<ChatMessage>> SendMessage([FromBody] SendMessageRequest request)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(request.Content))
-                {
-                    return BadRequest(new { 
-                        success = false, 
-                        message = "Message content is required" 
-                    });
-                }
+            message.SentAt = DateTime.UtcNow;
+            message.IsRead = false;
+            message.ConversationId = conversation.Id;
 
-                var senderId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(senderId))
-                {
-                    return Unauthorized(new { message = "User is not authenticated" });
-                }
-                var restaurant = await restaurantService.GetRestaurantByIdAsync(request.RestaurantId);
-                var Vendor = restaurant.ManagerID;
+            await _chatRepo.CreateAsync(message);
+            await _chatRepo.CommitAsync();
 
-                var message = await _chatService.SendMessage(senderId, Vendor, request.Content);
-                return Ok(new { 
-                    success = true, 
-                    data = message,
-                    message = "Message sent successfully"
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { 
-                    success = false, 
-                    message = "Error sending message",
-                    error = ex.Message 
-                });
-            }
-        }
+            // Send real-time message
+            await _hubContext.Clients.User(message.ReceiverId).SendAsync("ReceiveMessage", message);
 
-        [HttpPost("conversations/{conversationId}/read")]
-        public async Task<ActionResult> MarkAsRead(int conversationId)
-        {
-            try
-            {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userId))
-                {
-                    return Unauthorized(new { message = "User is not authenticated" });
-                }
-
-                await _chatService.MarkMessagesAsRead(conversationId, userId);
-                return Ok(new { 
-                    success = true, 
-                    message = "Messages marked as read successfully"
-                });
-            }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized(new { message = "You are not authorized to access this conversation" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { 
-                    success = false, 
-                    message = "Error marking messages as read",
-                    error = ex.Message 
-                });
-            }
+            return Ok(message);
         }
     }
-
-    public class SendMessageRequest
-    {
-        public int RestaurantId { get; set; }
-        public string Content { get; set; }
-    }
-
 }

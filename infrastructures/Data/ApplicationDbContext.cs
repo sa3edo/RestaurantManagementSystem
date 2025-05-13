@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Models.Chat;
 using Models.Models;
 using RestaurantManagementSystem.Models;
 using Stripe.Climate;
@@ -13,6 +14,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     DbSet<MenuItem> MenuItems { get; set; }
     DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<Models.Models.Order> Orders { get; set; }
+    public DbSet<ChatMessage> Messages { get; set; }
+    public DbSet<Conversation> Conversation { get; set; }
     DbSet<Reservation> Reservations { get; set; }
     DbSet<Restaurant> Restaurants { get; set; }
     DbSet<Review> Reviews { get; set; }
@@ -89,6 +92,16 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .WithMany(o => o.OrderItems)
             .HasForeignKey(oi => oi.OrderID)
             .OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<ChatMessage>()
+           .HasOne(oi => oi.Sender)
+           .WithMany()
+           .HasForeignKey(oi => oi.SenderId)
+           .OnDelete(DeleteBehavior.Restrict);
+        builder.Entity<ChatMessage>()
+           .HasOne(oi => oi.Receiver)
+           .WithMany()
+           .HasForeignKey(oi => oi.ReceiverId)
+           .OnDelete(DeleteBehavior.Restrict);
 
         builder.Entity<OrderItem>()
             .HasOne(oi => oi.MenuItem)
@@ -117,5 +130,26 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<IdentityUser>()
             .HasIndex(u => u.NormalizedUserName)
             .IsUnique(false);
+        builder.Entity<Conversation>()
+        .HasOne(c => c.Vendor)
+        .WithMany()
+        .HasForeignKey(c => c.VendorId)
+        .OnDelete(DeleteBehavior.Restrict); // أو DeleteBehavior.NoAction
+
+        // تعديل علاقة Conversation مع User
+        builder.Entity<Conversation>()
+            .HasOne(c => c.User)
+            .WithMany()
+            .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // تعديل علاقة ChatMessage مع Conversation
+        builder.Entity<ChatMessage>()
+            .HasOne(m => m.Conversation)
+            .WithMany(c => c.Messages)
+            .HasForeignKey(m => m.ConversationId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+
     }
 }

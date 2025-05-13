@@ -42,14 +42,27 @@ namespace RestaurantManagementSystem.Controllers
         public async Task<IActionResult> GetMessagesBetweenUsers([FromQuery] string user1, [FromQuery] string user2)
         {
             var conversation = await _conversationRepo.GetConversationAsync(user1, user2);
+
             if (conversation == null)
-                return NotFound("Conversation not found.");
+            {
+                conversation = new Conversation
+                {
+                    VendorId = user1,
+                    UserId = user2,
+                    CreatedAt = DateTime.UtcNow,
+                    LastMessageAt = null
+                };
+
+                await _conversationRepo.CreateAsync(conversation);
+                await _conversationRepo.CommitAsync();
+            }
 
             var messages = await _chatRepo.GetMessagesByConversationIdAsync(conversation.Id);
             var sorted = messages.OrderBy(m => m.SentAt).ToList();
 
             return Ok(sorted);
         }
+
 
         // POST: api/chat/send
         [HttpPost("send")]

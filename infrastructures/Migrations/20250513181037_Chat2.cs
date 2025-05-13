@@ -7,7 +7,7 @@ namespace infrastructures.Migrations
 {
     /// <inheritdoc />
     public partial class Chat2 : Migration
-    {
+    { 
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {

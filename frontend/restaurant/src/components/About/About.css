@@ -1,0 +1,16 @@
+
+
+ p {
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: #2c2c54;
+}
+
+.about{
+
+  background: linear-gradient(90deg, #f6ecfc 0%, #515ada91 100%);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(8px);
+}

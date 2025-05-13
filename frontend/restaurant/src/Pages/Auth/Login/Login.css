@@ -1,0 +1,39 @@
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, rgba(109, 100, 255, 0.1), rgba(143, 140, 254, 0.2));
+  color: #2c2c54;
+}
+
+.login-container {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+}
+
+h2 {
+  color: var(--primary-color);
+}
+
+.form-control {
+  border-radius: 12px;
+  border: 1px solid #dcdcdc;
+}
+
+.form-label {
+  color: #2c2c54;
+}
+
+button[type="submit"] {
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 12px;
+  padding: 0.75rem;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+button[type="submit"]:hover {
+  background-color: var(--secondary-color);
+}

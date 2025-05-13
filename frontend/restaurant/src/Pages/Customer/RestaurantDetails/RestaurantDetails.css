@@ -1,0 +1,14 @@
+.accordion-body-wrapper {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease, padding 0.3s ease;
+  padding: 0 1rem;
+  background-color: #fdfdfd;
+  border-top: 1px solid #eee;
+}
+
+.accordion-body-wrapper.expanded {
+  max-height: 800px;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}

@@ -1,0 +1,58 @@
+:root {
+  --primary-color: #6c63ff;
+  --secondary-color: #918eff;
+  --text-light: #ffffff;
+  --glass-bg: rgba(255, 255, 255, 0.1);
+}
+.bg{
+    background-image: url('../../../../public/images/ChatGPT-Image.png');
+    min-height:100vh ;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.layer {
+
+     background-color: rgba(0, 0, 0, 0.6);
+
+}
+.welcome{
+    position: relative;
+  z-index: 2;
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 2rem 3rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  color: var(--text-light);
+  max-width: 900px;
+  width: 90%;
+}
+
+
+         
+.home-btn {
+background-image: linear-gradient(to right, #DA22FF 0%, #9733EE  51%, #DA22FF  100%);
+            margin: 10px;
+            padding: .75rem 2rem;
+            font-size: 1rem;
+            text-align: center;
+            text-transform: uppercase;
+            transition: 0.5s;
+            background-size: 200% auto;
+            color: white;            
+            box-shadow: 0 0 8px #eee;
+            border-radius: 10px;
+            border: 0;
+            /* display: block; */
+}
+
+.home-btn:hover {
+            background-position: right center; /* change the direction of the change here */
+            color: #fff;
+            text-decoration: none;
+}
+.fs-4r{
+  font-size: 4rem;
+}

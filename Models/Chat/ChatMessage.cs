@@ -4,6 +4,7 @@ using RestaurantManagementSystem.Models;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Models.Chat
 {
@@ -19,15 +20,15 @@ namespace Models.Chat
         public bool IsRead { get; set; }
 
         [ValidateNever]
-        [Ignore]
+        [JsonIgnore]
         public virtual Conversation? Conversation { get; set; }
 
         [ValidateNever]
-        [Ignore]
+        [JsonIgnore]
         public virtual ApplicationUser? Sender { get; set; }
 
         [ValidateNever]
-        [Ignore]
+        [JsonIgnore]
         public virtual ApplicationUser? Receiver { get; set; }
     }
 }

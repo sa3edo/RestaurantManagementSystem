@@ -93,8 +93,6 @@ namespace RestaurantManagementSystem.Controllers
 
             await _chatRepo.CreateAsync(message);
             await _chatRepo.CommitAsync();
-
-            // Send real-time message
             await _hubContext.Clients.User(message.ReceiverId).SendAsync("ReceiveMessage", message);
 
             return Ok(message);

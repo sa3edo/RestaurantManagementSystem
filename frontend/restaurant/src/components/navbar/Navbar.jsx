@@ -11,8 +11,8 @@ export default function Navbar() {
   const [searchTerm, setSearchTerm] = useState('');
   useEffect(() => {
     AOS.init({
-      duration: 1000, // مدة الحركة بالملي ثانية
-      once: true      // الحركة تحصل مرة واحدة فقط عند التمرير
+      duration: 1000,
+      once: true
     });
   }, []);
   const handleLogout = () => {
@@ -46,7 +46,7 @@ export default function Navbar() {
   return (
     <nav className="navbar px-4 py-3 position-fixed start-0 end-0 top-0 z-3" >
       <div className="container d-flex align-items-center justify-content-between">
-        <Link to="/home" className="navbar-brand">Reserve IT</Link>
+        <Link to="/home" className="navbar-brand">Cravy </Link>
 
 
         <form className="d-flex me-auto ms-4 .navbar-search" onSubmit={handleSearch}>

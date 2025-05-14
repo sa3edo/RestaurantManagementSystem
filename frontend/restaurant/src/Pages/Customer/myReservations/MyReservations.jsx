@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import './MyReservations.css';
 
 function MyReservations() {
-    const navigate = useNavigate();
     const [reservations, setReservations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -12,7 +11,6 @@ function MyReservations() {
     useEffect(() => {
         const fetchReservations = async () => {
             try {
-                setLoading(true);
                 const token = localStorage.getItem('token');
                 const response = await axios.get(
                     'https://localhost:7251/api/User/GetUserReservations',
@@ -23,16 +21,13 @@ function MyReservations() {
                         }
                     }
                 );
-
-                if (response.data && Array.isArray(response.data)) {
+                if (Array.isArray(response.data)) {
                     setReservations(response.data);
-                    console.log('Reservations:', response.data);
                 } else {
                     setReservations([]);
                 }
-            } catch (error) {
-                console.error('Error fetching reservations:', error);
-                setError('Failed to fetch reservations. Please try again later.');
+            } catch (err) {
+                setError('Failed to fetch reservations.');
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
@@ -48,74 +43,73 @@ function MyReservations() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            <div className="text-center my-5">
+                <div className="spinner-border text-primary" role="status" />
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-red-500">{error}</div>
+            <div className="text-center text-danger my-5">
+                <p>{error}</p>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-100 py-8">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="bg-white shadow rounded-lg overflow-hidden">
-                    <div className="px-4 py-5 sm:px-6">
-                        <h2 className="text-lg font-medium text-gray-900">My Reservations</h2>
+        <div className="container my-5">
+            <h2 className="text-center mb-4">My Reservations</h2>
+            <div className="row">
+                {reservations.length > 0 ? (
+                    reservations.map((res, index) => (
+                        <div className="col-md-4 mb-4" key={index}>
+                            <div className="card shadow-sm h-100">
+                                <div className="card-body ">
+                                    <h5 className="card-title text-primary">
+                                        <i className="fas fa-utensils me-2"></i>
+                                        {res.restaurantName || 'Restaurant'}
+                                    </h5>
+                                    <ul className="list-unstyled mt-3">
+                                        <li className="mb-2">
+                                            <i className="fas fa-calendar-alt me-2 text-secondary"></i>
+                                            <strong>Date:</strong> {res.reservationDate?.split('T')[0]}
+                                        </li>
+                                        <li className="mb-2">
+                                            <i className="fas fa-clock me-2 text-secondary"></i>
+                                            <strong>Start Time:</strong> {res.startTime || 'N/A'}
+                                        </li>
+                                        <li className="mb-2">
+                                            <i className="fas fa-clock me-2 text-secondary"></i>
+                                            <strong>End Time:</strong> {res.endTime || 'N/A'}
+                                        </li>
+                                        <li className="mb-2">
+                                            <i className="fas fa-chair me-2 text-secondary"></i>
+                                            <strong>Table:</strong> {res.tableId}
+                                        </li>
+                                        <li>
+                                            <i className="fas fa-clipboard-list me-2 text-secondary"></i>
+                                            <strong>Status:</strong>
+                                            <span
+                                                className={`status-pill ${res.status === 0 ? 'status-pending' : res.status === 1 ? 'status-complete' : 'status-cancel'}`}
+                                            >
+                                                {res.status === 0
+                                                    ? 'Pending'
+                                                    : res.status === 1
+                                                        ? 'Completed'
+                                                        : 'Cancelled'}
+                                            </span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="text-center">
+                        <p>No reservations found.</p>
                     </div>
-                    <div className="border-t border-gray-200">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Restaurant
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Date
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Time
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Table
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {reservations.length > 0 ? (
-                                    reservations.map((reservation) => (
-                                        <tr key={`${reservation.restaurantId}-${reservation.tableId}-${reservation.reservationDate}`}>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {reservation.restaurant?.name || 'N/A'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {reservation.reservationDate.split('T')[0]}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {reservation.timeSlot || 'N/A'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                Table {reservation.tableId}
-                                            </td>
-                                        </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan="4" className="px-6 py-4 text-center text-sm text-gray-500">
-                                            No reservations found
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                )}
             </div>
         </div>
     );

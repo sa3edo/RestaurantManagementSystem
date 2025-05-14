@@ -1,5 +1,16 @@
 
-
+:root {
+  --primary-color: #ea6434;
+  --primary-gradient-start: #d85a2d;
+  --primary-gradient-end: #f3702f;
+  --text-dark: #1e1e1e;
+  --text-light: #ffffff;
+  --accent-color: #ffe2d3;
+  --bg-light: #f8f4f0;
+  --card-bg: #fdf6ef;
+  --link-color: #1b2536;
+  --glass-bg: rgba(255, 255, 255, 0.1);
+}
  p {
   font-size: 1.1rem;
   line-height: 1.7;
@@ -8,9 +19,13 @@
 
 .about{
 
-  background: linear-gradient(90deg, #f6ecfc 0%, #515ada91 100%);
+  background: #F9EFE3;
+  color: var(--link-color);
   border-radius: 20px;
   padding: 2rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
   backdrop-filter: blur(8px);
+}
+strong{
+  color: var(--primary-color);
 }

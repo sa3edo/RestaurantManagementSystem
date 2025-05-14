@@ -3,6 +3,8 @@ import Swal from 'sweetalert2';
 import { useEffect, useState } from 'react';
 import '../../App.css'
 import AOS from 'aos';
+import { Link } from 'react-router-dom';
+
 import 'aos/dist/aos.css';
 export default function Navbar() {
   const navigate = useNavigate();
@@ -44,7 +46,8 @@ export default function Navbar() {
   return (
     <nav className="navbar px-4 py-3 position-fixed start-0 end-0 top-0 z-3" >
       <div className="container d-flex align-items-center justify-content-between">
-        <span className="navbar-brand">Reserve IT</span>
+        <Link to="/home" className="navbar-brand">Reserve IT</Link>
+
 
         <form className="d-flex me-auto ms-4 .navbar-search" onSubmit={handleSearch}>
           <input

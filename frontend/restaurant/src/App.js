@@ -43,7 +43,7 @@ useEffect(() => {
         <Route
           path="/*"
           element={
-            <div className="container mt-4">
+            <div className="container content">
               <AppRoutes setToken={setToken} />
             </div>
           }

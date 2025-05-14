@@ -1,0 +1,76 @@
+.card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 12px;
+  background: #fff;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #ff512f;
+}
+
+.card-text {
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.6;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  border-radius: 6px;
+}
+
+.btn-view {
+  color: #f09819;
+  border: 1px solid #f09819;
+  background-color: transparent;
+  transition: all 0.3s ease;
+}
+
+.btn-view:hover {
+  background-color: #f09819;
+  color: white;
+}
+
+.btn-accept {
+  background: linear-gradient(to right, #00b09b, #96c93d);
+  color: white;
+  border: none;
+}
+
+.btn-accept:hover {
+  opacity: 0.9;
+}
+
+.btn-cancel {
+  background: linear-gradient(to right, #ff512f, #dd2476);
+  color: white;
+  border: none;
+}
+
+.btn-cancel:hover {
+  opacity: 0.9;
+}
+
+.badge {
+  font-size: 0.8rem;
+  padding: 5px 10px;
+  border-radius: 20px;
+}
+
+.modal-content {
+  border-radius: 12px;
+}
+.modal{
+    margin-top: 5%;
+}

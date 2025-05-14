@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import '../../../App.css';
-import './AllRes.css'
+import './AllRes.css';
+
 export default function AllRestaurants() {
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,20 +36,26 @@ export default function AllRestaurants() {
   if (error) return <div className="error">{error}</div>;
 
   return (
-    <div className="restaurant-page container py-5">
-      <div className="restaurant-header row justify-content-between align-items-center mb-4">
-        <h1 className="col-12 col-md-8">All Restaurants</h1>
-        <div className="col-12 col-md-4 d-flex justify-content-between">
-          <button onClick={() => navigate('/customer/my-orders')} className="home-btn">
-            Orders & Payment
-          </button>
-          <button onClick={() => navigate('/customer/my-reservations')} className="home-btn">
-            My Reservations
-          </button>
+    <div className="restaurant-page container mt-5 rounded-4 py-5">
+      <div className="restaurant-header row mb-4" data-aos="zoom-in">
+        <div className="col-md-4">
+          <h2>All Restaurants</h2>
+        </div>
+        <div className="col-12 col-md-6">
+          <div className="d-flex justify-content-evenly">
+            <button onClick={() => navigate('/customer/my-orders')} className="home-btn user-btn">
+              <i className="fas fa-credit-card"></i> Orders & Payment
+            </button>
+            <button onClick={() => navigate('/customer/my-reservations')} className="home-btn user-btn">
+              <i className="fas fa-calendar-check"></i> My Reservations
+            </button>
+          </div>
         </div>
       </div>
 
-      <h2 className="section-title text-center mb-4">🍴 Discover Amazing Restaurants</h2>
+      <h2 className="section-title text-center mb-4" data-aos="zoom-in">
+        <i className="fas fa-utensils"></i> Discover Amazing Restaurants
+      </h2>
 
       <div className="row g-4">
         {restaurants.map((restaurant) => (
@@ -65,21 +72,21 @@ export default function AllRestaurants() {
                 <div className="card-buttons">
                   <button
                     onClick={() => navigate(`/customer/allRestaurants/details/${restaurant.restaurantID}`)}
-                    className="btn btn-outline-primary w-100 mb-2"
+                    className="btn w-100 mb-2"
                   >
-                    ℹ️ View Details
+                    <i className="fas fa-info-circle"></i> View Details
                   </button>
                   <button
                     onClick={() => navigate(`/customer/makeReview/${restaurant.restaurantID}`)}
-                    className="btn btn-outline-warning w-100 mb-2"
+                    className="btn w-100 mb-2"
                   >
-                    ⭐ Add Review
+                    <i className="fas fa-star"></i> Add Review
                   </button>
                   <button
                     onClick={() => navigate(`/customer/createReservation/${restaurant.restaurantID}`)}
-                    className="btn btn-outline-success w-100"
+                    className="btn w-100"
                   >
-                    📅 Make Reservation
+                    <i className="fas fa-calendar-alt"></i> Make Reservation
                   </button>
                 </div>
               </div>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import './RestaurantDetails.css'; // ملف CSS للأنيميشن والتنسيق
+import '../../../App.css';
 
 export default function RestaurantDetails() {
   const { restaurantID } = useParams();
@@ -101,8 +102,10 @@ export default function RestaurantDetails() {
   if (error) return <div className="text-danger text-center mt-5 fs-4">{error}</div>;
 
   return (
-    <div className="container mt-5">
-      <h2 className="text-center mb-4 display-5">🏠 {restaurant?.name}</h2>
+    <div className="container res-details ">
+      <h2 className="text-center section-title mb-4 display-5">
+        <i className="fas fa-home"></i> {restaurant?.name}
+      </h2>
       <div className="card shadow-lg rounded-4 p-4">
         {restaurant?.imgUrl && (
           <img
@@ -113,36 +116,42 @@ export default function RestaurantDetails() {
           />
         )}
 
-        <div className="mb-3">
-          <h4 className="fw-bold">📄 Description:</h4>
+        <div className="mb-3" >
+          <h4 className="fw-bold">
+            <i className="fas fa-file-alt"></i> Description:
+          </h4>
           <p className="text-muted fs-5">{restaurant?.description}</p>
         </div>
 
         <div className="mb-3">
-          <h5 className="fw-bold">📍 Location:</h5>
+          <h5 className="fw-bold">
+            <i className="fas fa-map-marker-alt"></i> Location:
+          </h5>
           <p className="text-dark fs-5">{restaurant?.location}</p>
         </div>
 
-        <div className="text-center mt-4 d-flex justify-content-center gap-3 flex-wrap">
-          <button className="btn btn-outline-secondary px-4 py-2" onClick={() => navigate(-1)}>
-            🔙 Back
+        <div  className="text-center mt-4 d-flex justify-content-center gap-3 flex-wrap">
+          <button className="custom-btn back-btn" onClick={() => navigate(-1)}>
+            <i className="fas fa-arrow-left"></i> Back
           </button>
-          <button className="btn btn-primary px-4 py-2" onClick={toggleCategories}>
+          <button className="custom-btn toggle-btn" onClick={toggleCategories}>
             {showCategories ? '📂 Hide Categories' : '📂 Show Categories'}
           </button>
           <button
-            className="btn btn-outline-primary px-4 py-2"
+            className="custom-btn order-btn"
             onClick={() => window.location.href = `/customer/makeOrder/${restaurant.restaurantID}`}
           >
-            🍽️ Make Order
+            <i className="fas fa-utensils"></i> Make Order
           </button>
         </div>
 
         {showCategories && (
           <div className="mt-5">
-            <h4 className="fw-bold mb-3">🗂️ Categories:</h4>
+            <h4 className="fw-bold mb-3">
+              <i className="fas fa-box-open"></i> Categories:
+            </h4>
 
-            <div className="accordion" id="categoryAccordion">
+            <div data-aos="zoom-in-down" className="accordion" id="categoryAccordion">
               {categories.map((cat) => {
                 const isExpanded = expandedCategoryID === cat.categoryID;
                 return (
@@ -153,10 +162,10 @@ export default function RestaurantDetails() {
                         type="button"
                         onClick={() => handleCategoryClick(cat.categoryID)}
                       >
-                        🍴 {cat.name}
+                        <i className="fas fa-utensils me-2"></i> {cat.name}
                       </button>
                     </h2>
-                    <div className={`accordion-body-wrapper ${isExpanded ? 'expanded' : ''}`}>
+                    <div  className={`accordion-body-wrapper ${isExpanded ? 'expanded' : ''}`}>
                       <div className="accordion-body">
                         {menuByCategory[cat.categoryID] && menuByCategory[cat.categoryID].length > 0 ? (
                           <ul className="list-group">

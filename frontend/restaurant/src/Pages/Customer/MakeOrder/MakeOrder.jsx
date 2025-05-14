@@ -161,9 +161,11 @@ export default function MakeOrder() {
 
   return (
     <div className="container mt-5">
-      <h2 className="text-center mb-4 display-5">🍽️ Make Order for {restaurant?.name}</h2>
+      <h2 className="text-center mb-4 display-5">
+        <i className="fas fa-utensils me-2"></i> Make Order for {restaurant?.name}
+      </h2>
 
-      <div className="accordion" id="categoryAccordion">
+      <div className="accordion" id="categoryAccordion" data-aos="zoom-in-down">
         {categories.map((cat) => {
           const isExpanded = expandedCategoryID === cat.categoryID;
           return (
@@ -190,7 +192,7 @@ export default function MakeOrder() {
                             className="btn btn-sm btn-outline-success"
                             onClick={() => handleAddToOrder(item)}
                           >
-                            ➕ Add
+                            <i className="fas fa-plus"></i> Add
                           </button>
                         </li>
                       ))}
@@ -207,7 +209,7 @@ export default function MakeOrder() {
 
       {orderItems.length > 0 && (
         <div className="mt-5">
-          <h4>🛒 Order Summary</h4>
+          <h4><i className="fas fa-shopping-cart me-2"></i> Order Summary</h4>
           <ul className="list-group mb-3">
             {orderItems.map((item) => {
               const menuItem = Object.values(menuByCategory)
@@ -234,7 +236,7 @@ export default function MakeOrder() {
                         );
                       }}
                     >
-                      ➖
+                      <i className="fas fa-minus"></i>
                     </button>
                     <span>{item.quantity}</span>
                     <button
@@ -249,7 +251,7 @@ export default function MakeOrder() {
                         );
                       }}
                     >
-                      ➕
+                      <i className="fas fa-plus"></i>
                     </button>
                   </div>
 
@@ -265,7 +267,7 @@ export default function MakeOrder() {
                         )
                       }
                     >
-                      🗑️
+                      <i className="fas fa-trash-alt"></i>
                     </button>
                   </div>
                 </li>
@@ -288,9 +290,8 @@ export default function MakeOrder() {
           </div>
 
           <button className="btn btn-success px-4 py-2" onClick={handleCreateOrder}>
-            ✅ Submit Order
+            <i className="fas fa-check me-2"></i> Submit Order
           </button>
-          
         </div>
       )}
     </div>

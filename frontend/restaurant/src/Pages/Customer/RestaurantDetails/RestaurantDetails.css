@@ -1,3 +1,109 @@
+:root {
+  --primary-color: #ea6434;
+  --primary-gradient-start: #d85a2d;
+  --primary-gradient-end: #f3702f;
+  --text-dark: #1e1e1e;
+  --text-light: #ffffff;
+  --accent-color: #ffe2d3;
+  --bg-light: #f8f4f0;
+  --card-bg: #fdf6ef;
+  --link-color: #1b2536;
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --title-font: "Amatic SC", sans-serif;
+  --main-font: "Inter", sans-serif;
+}
+
+.res-details {
+
+  font-family: var(--main-font);
+  color: var(--text-dark);
+}
+
+.card {
+  background-color: var(--card-bg);
+  border: none;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+.accordion-item {
+  background-color: var(--bg-light);
+  border: 1px solid var(--accent-color);
+}
+
+.accordion-button {
+  background: linear-gradient(to right, var(--primary-gradient-start), var(--primary-gradient-end));
+  color: var(--text-light) !important;
+  font-weight: bold;
+
+}
+
+.accordion-button:not(.collapsed) {
+  box-shadow: none;
+}
+
+.accordion-body-wrapper {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease, padding 0.3s ease;
+  padding: 0 1rem;
+  background-color: #fff6f2;
+  border-top: 1px solid #f2d6c2;
+}
+
+.accordion-body-wrapper.expanded {
+  max-height: 800px;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.list-group-item {
+  background-color: #fff6f2 !important;
+  border: 1px solid #f3c7b2;
+}
+
+.custom-btn {
+  padding: 0.6rem 1.5rem;
+  font-weight: 600;
+  border-radius: 12px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.back-btn {
+  background-color: transparent;
+  color: #333;
+  border-color: #ccc;
+}
+
+.back-btn:hover {
+  background-color: #eee;
+  color: #000;
+}
+
+.toggle-btn {
+  background: linear-gradient(to right, var(--primary-gradient-start), var(--primary-gradient-end));
+  color: var(--text-light);
+  border: none;
+}
+
+.toggle-btn:hover {
+  opacity: 0.9;
+}
+
+.order-btn {
+  background-color: transparent;
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+}
+
+.order-btn:hover {
+  background-color: var(--primary-color);
+  color: var(--text-light);
+}
+
+
 .accordion-body-wrapper {
   max-height: 0;
   overflow: hidden;

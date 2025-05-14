@@ -1,24 +1,41 @@
-body {
-  margin: 0;
-  font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, #f6f9ff, #e9e5f9);
-  color: #2c2c54;
-}
 :root {
-  --primary-color: #6c63ff;
-  --secondary-color: #918eff;
+  --primary-color: #ea6434;
+  --primary-gradient-start: #d85a2d;
+  --primary-gradient-end: #f3702f8d;
+  --text-dark: #1e1e1e;
   --text-light: #ffffff;
+  --accent-color: #ffe2d3;
+  --bg-light: #f8f4f0;
+  --card-bg: #fdf6ef;
+  --link-color: #1b2536;
   --glass-bg: rgba(255, 255, 255, 0.1);
-}
-.navbar {
-  background: linear-gradient(90deg, #6c63ff, #918eff);
-  padding: 1rem 2rem;
-  color: white;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-  border-bottom-left-radius: 20px;
-  border-bottom-right-radius: 20px;
+  --title-font: "Amatic SC", sans-serif;
+  --main-font: "Inter", sans-serif;
 }
 
+body {
+  margin: 0;
+
+  background: var(--bg-light) !important;
+  color: #2c2c54;
+}
+
+.navbar {
+  background: linear-gradient(45deg, rgba(216, 90, 45), rgba(243, 161, 47), rgba(255, 120, 0), rgba(255, 170, 0));
+  z-index: 9999;
+
+  padding: 1rem 2rem;
+  color: white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+
+  font-family: var(--main-font);
+
+}
+
+.content {
+  padding-top: 1%;
+  margin-top: 5%;
+}
 
 .navbar-container {
   display: flex;
@@ -30,6 +47,7 @@ body {
 .navbar-brand {
   font-size: 1.8rem;
   font-weight: bold;
+  font-family: var(--main-font);
 }
 
 /* .navbar-search {
@@ -45,30 +63,41 @@ body {
   width: 200px;
 }
 
- button.navbar-search {
+/* button.navbar-search {
   background: white;
-  color: #6c63ff;
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 12px;
   font-weight: 500;
   transition: 0.3s;
-}
+} */
 
-button.navbar-search:hover {
+/* button.navbar-search:hover {
   background: #6c63ff;
   color: white;
+} */
+
+.navbar-search {
+  background-image: linear-gradient(to right, #FF512F 0%, #F09819 51%, #FF512F 100%);
+
+  padding: 0px 20px;
+  text-align: center;
+  text-transform: uppercase;
+  transition: 0.5s;
+  background-size: 200% auto;
+  color: white;
+  box-shadow: 0 0 2px #eeeeeec7;
+  border-radius: 10px;
+  border: 0;
+  font-family: var(--main-font);
 }
 
-.navbar-buttons button {
-  background: transparent;
-  border: 1px solid white;
-  color: white;
-  margin-left: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 12px;
-  transition: 0.3s;
-  cursor: pointer;
+.navbar-search:hover {
+  background-position: right center;
+  /* change the direction of the change here */
+  color: #fff;
+  text-decoration: none;
+  /* تغيير لون النص عند التمرير */
 }
 
 .navbar-buttons .logout {
@@ -76,10 +105,7 @@ button.navbar-search:hover {
   color: #ff6b81;
 }
 
-.navbar-buttons button:hover {
-  background: white;
-  color: #6c63ff;
-}
+
 
 /* Restaurant Page */
 .restaurant-page {
@@ -92,27 +118,15 @@ button.navbar-search:hover {
   align-items: center;
 }
 
-.header-buttons button {
-  margin-left: 1rem;
-  background: #6c63ff;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: 0.3s;
+.restaurant-header h2 {
+  font-family: var(--title-font);
+  font-size: 4rem;
+  font-weight: bold;
 }
 
-.header-buttons button:hover {
-  background: #4e47d0;
-}
 
-.section-title {
-  text-align: center;
-  margin-top: 2rem;
-  font-size: 1.6rem;
-  color: #6c63ff;
-}
+
+
 
 .restaurant-grid {
   display: grid;
@@ -124,15 +138,22 @@ button.navbar-search:hover {
 .restaurant-card {
   background: white;
   border-radius: 16px;
+  font-family: var(--main-font);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
   overflow: hidden;
-  transition: 0.3s;
+  transition: 0.6s;
 }
 
 .restaurant-card:hover {
-  transform: translateY(-5px);
-}
+  transform: translateY(-5px) scale(1.1);
 
+}
+.restaurant-card img{
+  transition: .5s;
+}
+.restaurant-card img:hover{
+  transform: scale(1.1);
+}
 .restaurant-image {
   width: 100%;
   height: 180px;
@@ -149,15 +170,50 @@ button.navbar-search:hover {
   width: 100%;
   margin-top: 0.5rem;
   background: transparent;
-  border: 1px solid #6c63ff;
-  color: #6c63ff;
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
   padding: 0.5rem;
   border-radius: 12px;
   cursor: pointer;
   transition: 0.3s;
 }
 
+.section-title {
+  color: var(--primary-color);
+  font-family: var(--title-font);
+  font-size: 4rem;
+
+
+}
+
 .card-buttons button:hover {
-  background: #6c63ff;
-  color: white;
+  background: var(--primary-color);
+  color: var(--text-light);
+}
+
+.feature-card {
+  background-color: var(--card-bg);
+}
+
+.feature-card-title {
+  color: var(--primary-color);
+}
+
+.features-section {
+  background: #F9EFE3;
+  font-family: var(--main-font);
+}
+
+.feature-card-title {
+  font-family: var(--title-font);
+  font-size: 3rem;
+  font-weight: bold;
+}
+
+.restaurant-page {
+  background: #F9EFE3;
+}
+
+.restaurant-page .user-btn {
+  padding: 1.2rem 1.4rem;
 }

@@ -19,7 +19,7 @@ export default function About() {
           />
         </div>
         <div className="col-md-6 text-md-start text-center  px-5 " data-aos="fade-left">
-          <h2 className="mb-4 text-gradient">About us</h2>
+          <h2 className="mb-4 text-gradient section-title">About us</h2>
  <p>
                         At <strong>Reserve It</strong>, we understand the joy of discovering the perfect dining experience. Our platform brings you closer to the best restaurants in town, allowing you to effortlessly explore their menu, check prices, and make your next meal unforgettable. Whether you're craving a hearty dish or a quick snack, our system ensures you have access to the freshest options available.
                     </p>

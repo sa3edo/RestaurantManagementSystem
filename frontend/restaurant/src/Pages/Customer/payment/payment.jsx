@@ -17,20 +17,20 @@ function Payment() {
                 throw new Error('No authentication token found');
             }
 
-            const response = await axios.post(
-                'https://localhost:7251/api/Payment/CreateCheckoutSession',
-                {
-                    orderId: parseInt(orderId),
+            const formData = new FormData();
+            formData.append('orderId', orderId);
 
-                },
+            const response = await axios.post(
+                `https://localhost:7251/api/Payment/CreateCheckoutSession`,
+                formData,
                 {
                     headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                        Accept: '*/*'
+                        'Authorization': `Bearer ${token}`,
+                        'accept': '*/*'
                     }
                 }
             );
+
             if (response.data && response.data.url) {
                 // Redirect to the payment URL
                 window.location.href = response.data.url;
@@ -66,8 +66,8 @@ function Payment() {
         return (
             <div className="text-center p-4">
                 <div className="text-red-500 mb-4">Error: {error}</div>
-                <button
-                    onClick={() => navigate('/customer/my-orders')}
+                <button 
+                    onClick={() => navigate('/customer/my-orders')} 
                     className="btn btn-primary"
                 >
                     Back to Orders

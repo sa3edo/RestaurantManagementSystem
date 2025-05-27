@@ -37,7 +37,7 @@ export default function AddTimeSlot() {
       setEndTime('');
       setIsAvailable(true);
 
-      setTimeout(() => navigate(-1), 2000);
+      
     } catch (err) {
       console.error('❌ Error adding time slot:', err.response?.data || err.message);
       setError('❌ Failed to add Time Slot.');
@@ -47,7 +47,7 @@ export default function AddTimeSlot() {
 
   return (
     <div className="container mt-4">
-      <h3 className="mb-4 text-center text-info">🕒 Add New Reservation Time Slot</h3>
+      <h3 className="mb-4 text-center section-title">🕒 Add New Reservation Time Slot</h3>
       {success && <div className="alert alert-success">{success}</div>}
       {error && <div className="alert alert-danger">{error}</div>}
       <form className="p-4 shadow rounded bg-light" onSubmit={handleSubmit}>

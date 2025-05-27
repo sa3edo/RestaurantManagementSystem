@@ -137,80 +137,84 @@ if (error) return (
 );
 
 return (
-<div className="min-h-screen bg-gray-100 p-4">
-    <div className="max-w-7xl mx-auto">
-    <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">All Orders</h2>
-        
-        <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-            <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Restaurant Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-            </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-            {orders && orders.length > 0 ? (
-                orders.map((order) => (
-                <tr 
-                    key={order.orderID || order.id} 
-                    className="hover:bg-gray-50"
-                >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{order.orderID || order.id}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{order.userName || order.user?.userName || 'N/A'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{order.restaurantName || order.restaurant?.name || 'N/A'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${(order.totalAmount || order.total || 0).toFixed(2)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                        ${order.status === 1 ? 'bg-green-100 text-green-800' : 
-                        order.status === 0 ? 'bg-yellow-100 text-yellow-800' : 
-                        order.status === 2 ? 'bg-red-100 text-red-800' : 
-                        'bg-gray-100 text-gray-800'}`}>
-                        {order.status === 0 ? 'Pending' : 
-                        order.status === 1 ? 'Preparing' : 
-                        order.status === 2 ? 'Ready' : 
-                        order.status === 3 ? 'Delivered' : 
-                        'Unknown'}
-                    </span>
-                    </td>
-                </tr>
-                ))
-            ) : (
-                <tr>
-                <td colSpan="9" className="px-6 py-4 text-center text-gray-500">
-                    No orders found
-                </td>
-                </tr>
-            )}
-            </tbody>
-        </table>
-        </div>
+    <div className="min-vh-100 p-4">
+    <div className="container">
+        <div className="">
+        <div className="main p-5 rounded-4 shadow">
+            <h1 className=" fw-bold mb-4 text-dark">All Orders</h1>
 
-        <div className="flex justify-between items-center mt-4">
-        <button 
-            className="btn btn-primary"
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-        >
-            Previous
-        </button>
-        <span className="text-gray-600">
-            Page {currentPage}
-        </span>
-        <button 
-            className="btn btn-primary"
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={orders.length === 0}
-        >
-            Next
-        </button>
+            {orders && orders.length > 0 ? (
+            <div className="row g-3">
+                {orders.map((order) => {
+                const orderId = order.orderID || order.id;
+                const userName = order.userName || order.user?.userName || 'N/A';
+                const restaurantName = order.restaurantName || order.restaurant?.name || 'N/A';
+                const total = (order.totalAmount || order.total || 0).toFixed(2);
+
+                let statusText = 'Unknown';
+                let badgeClass = 'bg-secondary';
+
+                switch (order.status) {
+                    case 0:
+                    statusText = 'Pending';
+                    badgeClass = 'bg-warning text-dark';
+                    break;
+                    case 1:
+                    statusText = 'Preparing';
+                    badgeClass = 'bg-success';
+                    break;
+                    case 2:
+                    statusText = 'Ready';
+                    badgeClass = 'bg-danger';
+                    break;
+                    case 3:
+                    statusText = 'Delivered';
+                    badgeClass = 'bg-primary';
+                    break;
+                }
+
+                return (
+                    <div className="col-md-6 col-lg-4" key={orderId}>
+                    <div className="card h-100 shadow-sm border-0">
+                        <div className="card-body">
+                        <h5 className="card-title">Order #{orderId}</h5>
+                        <p className="card-text mb-1"><strong>User:</strong> {userName}</p>
+                        <p className="card-text mb-1"><strong>Restaurant:</strong> {restaurantName}</p>
+                        <p className="card-text mb-2"><strong>Total:</strong> ${total}</p>
+                        <span className={`badge ${badgeClass}`}>{statusText}</span>
+                        </div>
+                    </div>
+                    </div>
+                );
+                })}
+            </div>
+            ) : (
+            <div className="text-center text-muted">No orders found</div>
+            )}
+
+            {/* Pagination */}
+            <div className="d-flex justify-content-between align-items-center mt-4">
+            <button
+                className="btn btn-outline-primary"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+            >
+                Previous
+            </button>
+            <span className="text-muted">Page {currentPage}</span>
+            <button
+                className="btn btn-outline-primary"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={orders.length === 0}
+            >
+                Next
+            </button>
+            </div>
+        </div>
         </div>
     </div>
     </div>
-</div>
+
+
 );
 }

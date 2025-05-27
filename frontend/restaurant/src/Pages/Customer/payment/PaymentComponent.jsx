@@ -29,23 +29,19 @@ function PaymentComponent() {
             if (!token) {
                 throw new Error('No authentication token found');
             }
-
             const formData = new FormData();
             formData.append('orderId', orderId);
 
-            const response = await axios.post(
-                'https://localhost:7251/api/Payment/CreateCheckoutSession',
-                formData,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'multipart/form-data',
-                        'accept': '*/*'
-                    }
+            const response = await axios.post('https://localhost:7251/api/Payment/CreateCheckoutSession', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
                 }
-            );
+            });
+
 
             if (response.data && response.data.url) {
+                // Redirect to the payment URL
                 window.location.href = response.data.url;
             } else {
                 throw new Error('No payment URL received');

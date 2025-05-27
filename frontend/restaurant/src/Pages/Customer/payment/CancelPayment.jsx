@@ -1,17 +1,20 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 
 function CancelPayment() {
     const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         const fetchCancelStatus = async () => {
             try {
+                const params = new URLSearchParams(location.search);
+                const sessionId = params.get('session_id');
                 const token = localStorage.getItem('token');
                 await axios.get(
-                    'https://localhost:7251/api/Payment/PaymentCancel',
+                    `https://localhost:7251/api/Payment/PaymentCancel${sessionId ? `?session_id=${sessionId}` : ''}`,
                     {
                         headers: {
                             'Authorization': `Bearer ${token}`,

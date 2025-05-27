@@ -168,92 +168,83 @@ const ShowFoodCategory = () => {
     );
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            <header className="bg-white shadow">
-                <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-                    <h1 className="text-2xl font-bold text-gray-900">Restaurant Food Categories</h1>
-                    <button
-                        onClick={() => navigate(-1)}
-                        className="btn btn-primary"
-                    >
-                        Back
-                    </button>
-                </div>
-            </header>
+    <div className="min-vh-100 main">
 
-            <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                <div className="px-4 py-6 sm:px-0">
-                    <div className="bg-white shadow rounded-lg p-6">
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full bg-white border border-gray-300">
-                                <thead>
-                                    <tr>
-                                        <th className="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            ID
-                                        </th>
-                                        <th className="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Name
-                                        </th>
-                                        <th className="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Actions
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {categories.map((category) => (
-                                        <tr key={category.id || category.categoryID} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap border-b border-gray-300">
-                                                {category.id || category.categoryID}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap border-b border-gray-300">
-                                                {category.name}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap border-b border-gray-300">
-                                                <div className="flex space-x-2">
-                                                    <button
-                                                        onClick={() => navigate(`/admin/update-food-category/${category.id || category.categoryID}?restaurantId=${restaurantId}`)}
-                                                        className="btn btn-warning"
-                                                    >
-                                                        Update
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteCategory(category.id || category.categoryID)}
-                                                        className="btn btn-danger"
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {/* Pagination */}
-                        <div className="mt-4 flex justify-center items-center">
-                            <button
-                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                disabled={currentPage === 1}
-                                className="btn btn-info"
-                            >
-                                Previous
-                            </button>
-                            <span className="px-4 py-2">
-                                Page {currentPage} of {totalPages}
-                            </span>
-                            <button
-                                onClick={() => setCurrentPage(prev => prev + 1)}
-                                disabled={currentPage >= totalPages}
-                                className="btn btn-success"
-                            >
-                                Next
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </main>
+    {/* Main Content */}
+    <main className="container pb-5">
+    <div className="">
+    <div className="">
+        <div className="d-flex justify-content-between">
+        <h1 className="m-3 fw-bold">Restaurant Food Categories</h1>
+        <button onClick={() => navigate(-1)} className="btn1 m-3">
+            Back
+        </button>
         </div>
+
+        {/* Category Cards */}
+        <div className="row g-3">
+        {categories.map((category) => (
+            <div className="col-md-4" key={category.id || category.categoryID}>
+            <div className="card h-100 shadow-sm">
+                <div className="card-body">
+                <h5 className="card-title">{category.name}</h5>
+                <p className="card-text">
+                    <strong>ID:</strong> {category.id || category.categoryID}
+                </p>
+                </div>
+                <div className="card-footer d-flex justify-content-between">
+                <button
+                    onClick={() =>
+                    navigate(
+                        `/admin/update-food-category/${
+                        category.id || category.categoryID
+                        }?restaurantId=${restaurantId}`
+                    )
+                    }
+                    className="btn1 w-75"
+                >
+                    Update
+                </button>
+                <button
+                    onClick={() =>
+                    handleDeleteCategory(category.id || category.categoryID)
+                    }
+                    className="btn "
+                >
+                    <i class="fa-solid fa-trash text-danger"></i>
+                </button>
+                </div>
+            </div>
+            </div>
+        ))}
+        </div>
+
+        {/* Pagination */}
+        <div className="d-flex justify-content-center align-items-center mt-4 gap-3">
+        <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="btn btn-outline-info"
+        >
+            Previous
+        </button>
+        <span>
+            Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong>
+        </span>
+        <button
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+            disabled={currentPage >= totalPages}
+            className="btn btn-success"
+        >
+            Next
+        </button>
+        </div>
+    </div>
+    </div>
+    </main>
+
+    </div>
+
     );
 };
 

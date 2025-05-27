@@ -6,8 +6,10 @@ import './AllRes.css';
 
 export default function AllRestaurants() {
   const [restaurants, setRestaurants] = useState([]);
+  const [filteredRestaurants, setFilteredRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState('all');
   const navigate = useNavigate();
 
   const fetchRestaurants = async () => {
@@ -18,6 +20,7 @@ export default function AllRestaurants() {
 
       if (response.data?.items && Array.isArray(response.data.items)) {
         setRestaurants(response.data.items);
+        setFilteredRestaurants(response.data.items); // Initial display is all restaurants
       } else {
         setError('❌ Unexpected API response format.');
       }
@@ -27,10 +30,38 @@ export default function AllRestaurants() {
       setLoading(false);
     }
   };
+  const handleChatClick = (restaurant) => {
+    const receiverId = restaurant.managerID;
+    const receiverName = restaurant.name;
+
+    // احفظ في localStorage
+    localStorage.setItem('receiverId', receiverId);
+    localStorage.setItem('receiverName', receiverName);
+
+    navigate('/chat', {
+      state: { receiverId, receiverName }
+    });
+  };
 
   useEffect(() => {
     fetchRestaurants();
   }, []);
+
+  // Function to handle filtering by category
+  const handleTabClick = (category) => {
+    setActiveTab(category);
+
+    if (category === 'all') {
+      setFilteredRestaurants(restaurants); // Show all restaurants
+    } else {
+      const filtered = restaurants.filter((restaurant) =>
+        restaurant.description?.toLowerCase().includes(category.toLowerCase()) ||
+        restaurant.name.toLowerCase().includes(category.toLowerCase()) ||
+        restaurant.location.toLowerCase().includes(category.toLowerCase())
+      );
+      setFilteredRestaurants(filtered); // Filter based on category
+    }
+  };
 
   if (loading) return <div className="loading">Loading restaurants...</div>;
   if (error) return <div className="error">{error}</div>;
@@ -49,6 +80,7 @@ export default function AllRestaurants() {
             <button onClick={() => navigate('/customer/my-reservations')} className="home-btn user-btn">
               <i className="fas fa-calendar-check"></i> My Reservations
             </button>
+
           </div>
         </div>
       </div>
@@ -57,8 +89,49 @@ export default function AllRestaurants() {
         <i className="fas fa-utensils"></i> Discover Amazing Restaurants
       </h2>
 
+      {/* Tabs for filtering */}
+      <div className="tabs mb-4">
+        <ul className="nav nav-pills ">
+          <li className="nav-item">
+            <button
+              className={`nav-link ${activeTab === 'all' ? 'active' : ''}`}
+              onClick={() => handleTabClick('all')}>
+              All
+            </button>
+          </li>
+          <li className="nav-item">
+            <button
+              className={`nav-link ${activeTab === 'pizza' ? 'active' : ''}`}
+              onClick={() => handleTabClick('pizza')}>
+              pizza
+            </button>
+          </li>
+          <li className="nav-item">
+            <button
+              className={`nav-link ${activeTab === 'grilled' ? 'active' : ''}`}
+              onClick={() => handleTabClick('grilled')}>
+              grilled
+            </button>
+          </li>
+          <li className="nav-item">
+            <button
+              className={`nav-link ${activeTab === 'desert' ? 'active' : ''}`}
+              onClick={() => handleTabClick('desert')}>
+              desert
+            </button>
+          </li>
+          <li className="nav-item">
+            <button
+              className={`nav-link ${activeTab === 'koshary ' ? 'active' : ''}`}
+              onClick={() => handleTabClick('koshary ')}>
+              koshary 
+            </button>
+          </li>
+        </ul>
+      </div>
+
       <div className="row g-4">
-        {restaurants.map((restaurant) => (
+        {filteredRestaurants.map((restaurant) => (
           <div key={restaurant.restaurantID} className="col-12 col-sm-6 col-md-4 col-lg-4" data-aos="zoom-in">
             <div className="restaurant-card card shadow-sm rounded-3">
               <img
@@ -89,6 +162,15 @@ export default function AllRestaurants() {
                     <i className="fas fa-calendar-alt"></i> Make Reservation
                   </button>
                 </div>
+                  <button
+                    onClick={() => handleChatClick(restaurant)}
+                    className="btn1  text-white w-100 mt-2"
+
+
+                  >
+                    <i className="fas fa-comments me-2"></i> 
+                    Chat whit manager
+                  </button>
               </div>
             </div>
           </div>

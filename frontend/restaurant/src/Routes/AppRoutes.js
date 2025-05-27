@@ -27,8 +27,6 @@ import ViewOrders from "../Pages/Manager/ViewOrders/ViewOrders";
 import GetAllUsers from "../Pages/Admin/GetAllUsers/GetAllUsers";
 import AddResMang from "../Pages/Admin/AddResMang/AddResMang";
 import AddAdminRes from "../Pages/Admin/AddAdminRes/AddAdminRes";
-import AddAdminCategory from "../Pages/Admin/AddFoodCategory/AddAdminCategory";
-import ShowFoodCategory from "../Pages/Admin/ShowFoodCategory/ShowFoodCategory";
 import UpdateFoodCategory from "../Pages/Admin/UpdateFoodCategory/UpdateFoodCategory";
 import ShowAllRes from "../Pages/Admin/showAllRes/ShowAllRes";
 import AdminRes from "../Pages/Admin/AdminRes/AdminRes";
@@ -45,7 +43,11 @@ import ShowReservations from "../Pages/Admin/ShowReservations/ShowReservations";
 import PaymentComponent from "../Pages/Customer/payment/PaymentComponent";
 import PaymentSuccess from "../Pages/Customer/payment/PaymentSuccess";
 import CancelPayment from "../Pages/Customer/payment/CancelPayment";
-
+import AddAdminCategory from "../Pages/Admin/AddFoodCategory/AddAdminCategory";
+import ShowFoodCategory from "../Pages/Admin/ShowFoodCategory/ShowFoodCategory.jsx";
+import ManagerRestaurantDetails from "../Pages/Manager/ManagerRestaurantDetails/ManagerRestaurantDetails.jsx";
+import Chat from "../components/Chat/Chat.jsx";
+import VendorChatPage from "../components/VendorChat/vendorChat.jsx";
 export default function AppRoutes() {
   return (
     <Routes>
@@ -271,6 +273,11 @@ export default function AppRoutes() {
         }
       />
       <Route
+        path="/manager/details/:restaurantID"
+        element={<ManagerRestaurantDetails />}
+      />
+
+      <Route
         path="/manager/AllTables/:restaurantID"
         element={
           <ProtectedRoute allowedRoles={["RestaurantManager"]}>
@@ -305,7 +312,7 @@ export default function AppRoutes() {
       <Route
         path="/customer/allRestaurants/details/:restaurantID"
         element={
-          <ProtectedRoute allowedRoles={["Customer"]}>
+          <ProtectedRoute allowedRoles={["Customer",]}>
             <RestaurantDetails />
           </ProtectedRoute>
         }
@@ -383,6 +390,14 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route 
+      path="/chat"
+      element={<Chat></Chat>}
+      ></Route>
+      <Route 
+      path="/vendor/chat"
+      element={<VendorChatPage/>}
+      ></Route>
     </Routes>
   );
 }

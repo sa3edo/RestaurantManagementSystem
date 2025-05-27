@@ -63,14 +63,14 @@ export default function Home() {
 
       {/* التأكد من وجود Ref للقسم الذي تريد التمرير إليه */}
       <div className="container">
-        <div  >
+        <div  id='about'>
           <About></About>
 
         </div>
-        <div>
+        <di id='features'>
           <Features></Features>
-        </div>
-        <div className="text-center mt-5" ref={goPage} id="goPage" >
+        </di>
+        <div  className="text-center mt-5" ref={goPage} id="goPage" >
           <button className="home-btn" onClick={goToRestaurantsPage}>
             Explore Restaurants
           </button>

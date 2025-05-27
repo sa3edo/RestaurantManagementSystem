@@ -22,6 +22,7 @@ const Login = () => {
             const { token } = response.data;
             
             localStorage.setItem('token', token);
+            
             window.dispatchEvent(new Event("storage")); 
             if (!token) {
                 console.error('No token returned from server:', response);
@@ -85,7 +86,7 @@ const Login = () => {
     return (
         <div className="d-flex justify-content-center align-items-center vh-100 ">
             <div className="login-container shadow-lg p-4">
-                <h2 className="text-center mb-4">Login</h2>
+                <h2 className="text-center mb-4 section-title">Login</h2>
                 <form onSubmit={handleLogin}>
                     <div className="mb-3">
                         <label htmlFor="email" className="form-label">Email:</label>

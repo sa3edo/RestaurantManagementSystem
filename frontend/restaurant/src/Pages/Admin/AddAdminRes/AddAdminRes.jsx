@@ -110,119 +110,102 @@ const AddAdminRes = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            {/* Header */}
-            <header className="bg-white shadow">
-                <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-                    <h1 className="text-2xl font-bold text-gray-900">Create Restaurant</h1>
-                    <button
-                        onClick={handleLogout}
-                        className="btn btn-danger"
-                    >
-                        Logout
-                    </button>
-                </div>
-            </header>
-
+        <div className="container-fluid d-flex justify-content-center align-items-center ">
             {/* Main Content */}
-            <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                <div className="px-4 py-6 sm:px-0">
-                    <div className="bg-white shadow rounded-lg p-6">
-                        <h2 className="text-xl font-semibold mb-4">Create New Restaurant</h2>
-                        
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label htmlFor="Name" className="block text-sm font-medium text-gray-700">
-                                    Restaurant Name
-                                </label>
-                                <input
-                                    type="text"
-                                    id="Name"
-                                    name="Name"
-                                    value={formData.Name}
-                                    onChange={handleInputChange}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                    required
-                                />
-                            </div>
+            <main className="container vh-100 d-flex justify-content-center align-items-center">
+                <div className="card w-100 border-0" style={{ maxWidth: '600px' }}>
+                    <div className="card-body main shadow rounded-4">
+                    <h1 className="card-title text-center mb-4">Create New Restaurant</h1>
 
-                            <div>
-                                <label htmlFor="Description" className="block text-sm font-medium text-gray-700">
-                                    Description
-                                </label>
-                                <textarea
-                                    id="Description"
-                                    name="Description"
-                                    value={formData.Description}
-                                    onChange={handleInputChange}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                    rows="3"
-                                    required
-                                />
-                            </div>
+                    <form onSubmit={handleSubmit}>
+                        <div className="mb-3">
+                        <label htmlFor="Name" className="form-label">
+                            Restaurant Name
+                        </label>
+                        <input
+                            type="text"
+                            id="Name"
+                            name="Name"
+                            value={formData.Name}
+                            onChange={handleInputChange}
+                            className="form-control"
+                            required
+                        />
+                        </div>
 
-                            <div>
-                                <label htmlFor="Location" className="block text-sm font-medium text-gray-700">
-                                    Location
-                                </label>
-                                <input
-                                    type="text"
-                                    id="Location"
-                                    name="Location"
-                                    value={formData.Location}
-                                    onChange={handleInputChange}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                    required
-                                />
-                            </div>
+                        <div className="mb-3">
+                        <label htmlFor="Description" className="form-label">
+                            Description
+                        </label>
+                        <textarea
+                            id="Description"
+                            name="Description"
+                            value={formData.Description}
+                            onChange={handleInputChange}
+                            className="form-control"
+                            rows="3"
+                            required
+                        ></textarea>
+                        </div>
 
-                            <div>
-                                <label htmlFor="Email" className="block text-sm font-medium text-gray-700">
-                                    Email
-                                </label>
-                                <input
-                                    type="email"
-                                    id="Email"
-                                    name="Email"
-                                    value={formData.Email}
-                                    onChange={handleInputChange}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                    required
-                                />
-                            </div>
+                        <div className="mb-3">
+                        <label htmlFor="Location" className="form-label">
+                            Location
+                        </label>
+                        <input
+                            type="text"
+                            id="Location"
+                            name="Location"
+                            value={formData.Location}
+                            onChange={handleInputChange}
+                            className="form-control"
+                            required
+                        />
+                        </div>
 
-                            <div>
-                                <label htmlFor="RestImg" className="block text-sm font-medium text-gray-700">
-                                    Restaurant Image
-                                </label>
-                                <input
-                                    type="file"
-                                    id="RestImg"
-                                    name="RestImg"
-                                    onChange={handleFileChange}
-                                    className="mt-1 block w-full text-sm text-gray-500
-                                    file:mr-4 file:py-2 file:px-4
-                                    file:rounded-md file:border-0
-                                    file:text-sm file:font-semibold
-                                    file:bg-indigo-50 file:text-indigo-700
-                                    hover:file:bg-indigo-100"
-                                    accept="image/*"
-                                />
-                            </div>
+                        <div className="mb-3">
+                        <label htmlFor="Email" className="form-label">
+                            Email
+                        </label>
+                        <input
+                            type="email"
+                            id="Email"
+                            name="Email"
+                            value={formData.Email}
+                            onChange={handleInputChange}
+                            className="form-control"
+                            required
+                        />
+                        </div>
 
-                            <div className="flex justify-end">
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="btn btn-success"
-                                >
-                                    {loading ? 'Creating...' : 'Create Restaurant'}
-                                </button>
-                            </div>
-                        </form>
+                        <div className="mb-3">
+                        <label htmlFor="RestImg" className="form-label">
+                            Restaurant Image
+                        </label>
+                        <input
+                            type="file"
+                            id="RestImg"
+                            name="RestImg"
+                            onChange={handleFileChange}
+                            className="form-control"
+                            accept="image/*"
+                        />
+                        </div>
+
+                        <div className="d-flex justify-content-end">
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="btn1"
+                        >
+                            {loading ? 'Creating...' : 'Create Restaurant'}
+                        </button>
+                        </div>
+                    </form>
                     </div>
                 </div>
-            </main>
+                </main>
+
         </div>
     );
 };

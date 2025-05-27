@@ -104,67 +104,62 @@ const ShowReservations = () => {
     );
 
     return (
-        <div className="min-h-screen bg-gray-100 p-4">
-            <div className="max-w-7xl mx-auto">
-                <div className="bg-white rounded-lg shadow-md p-6">
-                    <h2 className="text-2xl font-bold mb-6 text-gray-800">Restaurant Reservations</h2>
-                    
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reservation ID</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Time</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Time</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {reservations && reservations.length > 0 ? (
-                                    reservations.map((reservation) => (
-                                        <tr key={reservation.reservationID} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {reservation.reservationID}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {reservation.customerEmail || 'N/A'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {reservation.reservationDate?.split('T')[0] || 'N/A'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {reservation.startTime || 'N/A'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {reservation.endTime || 'N/A'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                    ${reservation.status === 1 ? 'bg-green-100 text-green-800' : 
-                                                      reservation.status === 0 ? 'bg-yellow-100 text-yellow-800' : 
-                                                      'bg-gray-100 text-gray-800'}`}>
-                                                    {reservation.status === 1 ? 'Confirmed' : 
-                                                     reservation.status === 0 ? 'Pending' : 
-                                                     'Unknown'}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
-                                            No reservations found
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+    <div className="min-vh-100 p-4">
+<div className="container">
+<div className="">
+    <div className="main p-5 rounded-4 shadow">
+    <h1 className=" fw-bold mb-4 text-dark">Restaurant Reservations</h1>
+
+    {reservations && reservations.length > 0 ? (
+        <div className="row g-3">
+        {reservations.map((reservation) => {
+            const {
+            reservationID,
+            customerEmail,
+            reservationDate,
+            startTime,
+            endTime,
+            status
+            } = reservation;
+
+            const dateOnly = reservationDate?.split('T')[0] || 'N/A';
+
+            let statusText = 'Unknown';
+            let badgeClass = 'bg-secondary';
+
+            if (status === 1) {
+            statusText = 'Confirmed';
+            badgeClass = 'bg-success';
+            } else if (status === 0) {
+            statusText = 'Pending';
+            badgeClass = 'bg-warning text-dark';
+            }
+
+            return (
+            <div className="col-md-6 col-lg-4" key={reservationID}>
+                <div className="card h-100 shadow-sm border-0">
+                <div className="card-body">
+                    <h5 className="card-title">Reservation #{reservationID}</h5>
+                    <p className="mb-1"><strong>Customer:</strong> {customerEmail || 'N/A'}</p>
+                    <p className="mb-1"><strong>Date:</strong> {dateOnly}</p>
+                    <p className="mb-1"><strong>Start Time:</strong> {startTime || 'N/A'}</p>
+                    <p className="mb-2"><strong>End Time:</strong> {endTime || 'N/A'}</p>
+                    <span className={`badge ${badgeClass}`}>{statusText}</span>
+                </div>
                 </div>
             </div>
+            );
+        })}
         </div>
+    ) : (
+        <div className="text-center text-muted">No reservations found</div>
+    )}
+    </div>
+</div>
+</div>
+    </div>
+
+    
     );
 };
 

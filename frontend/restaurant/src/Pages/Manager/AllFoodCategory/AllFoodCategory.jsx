@@ -85,7 +85,7 @@ export default function AllFoodCategory() {
 
   return (
     <div className="container mt-5">
-      <h2 className="text-center mb-4">
+      <h2 className="text-center mb-4 section-title">
         🍽️ Food Categories for <strong>{restaurantName}</strong>
       </h2>
 

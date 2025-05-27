@@ -12,6 +12,11 @@
   --title-font: "Amatic SC", sans-serif;
   --main-font: "Inter", sans-serif;
 }
+@import url('https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Russo+One&family=Sora:wght@100..800&display=swap'); 
+
+h1 {
+  font-family: 'Amatic SC', cursive;
+}
 
 body {
   margin: 0;
@@ -62,7 +67,34 @@ body {
   border: none;
   width: 200px;
 }
+.nav .nav-link {
+  color: var(--text-light); /* يجعل الروابط بيضاء لتظهر على خلفية النافبار */
+  font-weight: 500;
+  transition: color 0.3s ease;
+  position: relative;
+}
 
+.nav .nav-link:hover,
+.nav .nav-link:focus {
+  color: var(--accent-color); /* لون فاتح مميز عند التحويم */
+  text-decoration: none;
+}
+
+/* اختيارية: خط تحت الرابط عند التحويم */
+.nav .nav-link::after {
+  content: '';
+  position: absolute;
+  width: 0%;
+  height: 2px;
+  left: 0;
+  bottom: -4px;
+  background-color: var(--accent-color);
+  transition: width 0.3s;
+}
+
+.nav .nav-link:hover::after {
+  width: 100%;
+}
 /* button.navbar-search {
   background: white;
   border: none;
@@ -88,7 +120,7 @@ body {
   color: white;
   box-shadow: 0 0 2px #eeeeeec7;
   border-radius: 10px;
-  border: 0;
+  border: 1px solid;
   font-family: var(--main-font);
 }
 
@@ -96,8 +128,10 @@ body {
   background-position: right center;
   /* change the direction of the change here */
   color: #fff;
+    border: 1px solid;
+
   text-decoration: none;
-  /* تغيير لون النص عند التمرير */
+
 }
 
 .navbar-buttons .logout {
@@ -216,4 +250,39 @@ body {
 
 .restaurant-page .user-btn {
   padding: 1.2rem 1.4rem;
+}
+.btn1{
+  background-image: linear-gradient(to right, #f27121, var(--primary-gradient-end)); 
+  border: none;
+  color: white;
+  padding: 10px 8px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: .85rem;
+    background-size: 200% auto;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.btn2{
+   background-image: linear-gradient(#eee , white);
+   color: #2c2c54;
+   border: 2px solid var(--primary-color);
+     border-radius: 12px;
+     transition: all .3s;
+}
+.btn1:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+  background-position: right center;
+}
+.btn2:hover{
+    background-image: linear-gradient( #f27121, var(--primary-gradient-end)); 
+    color: white;
+}
+.dropdown-menu.show {
+  z-index: 3;
+}
+.main{
+  background-color: #f9eee3;
 }

@@ -90,164 +90,95 @@ const AdminRes = () => {
     if (error) return <div className="text-center p-4 text-red-500">Error: {error}</div>;
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            {/* Header */}
-            <header className="bg-white shadow">
-                <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-                    <h1 className="text-2xl font-bold text-gray-900">Admin Restaurants</h1>
-                    <div className="flex space-x-4">
-                        <button
-                            onClick={() => navigate('/admin/add-restaurant')}
-                            className="btn btn-primary"
-                        >
-                            Add Restaurant
-                        </button>
-                        <button
-                            onClick={handleLogout}
-                            className="btn btn-danger"
-                        >
-                            Logout
-                        </button>
-                    </div>
-                </div>
-            </header>
-
-            {/* Main Content */}
-            <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                <div className="px-4 py-6 sm:px-0">
-                    <div className="bg-white shadow rounded-lg p-6">
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full bg-white border border-gray-300">
-                                <thead>
-                                    <tr>
-                                        <th className="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            ID
-                                        </th>
-                                        <th className="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Name
-                                        </th>
-                                        <th className="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Description
-                                        </th>
-                                        <th className="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Location
-                                        </th>
-                                        <th className="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Email
-                                        </th>
-                                        <th className="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Image
-                                        </th>
-                                        <th className="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Actions
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {restaurants.map((restaurant) => {
-                                        const restaurantId = restaurant.restaurantID;
-                                        console.log('Current restaurant:', restaurant);
-                                        console.log('Restaurant ID to use:', restaurantId);
-                                        
-                                        const imagePath = restaurant.restImg || 
-                                                        restaurant.imgUrl || 
-                                                        restaurant.image || 
-                                                        restaurant.imageUrl || 
-                                                        restaurant.restaurantImage;
-                                        
-                                        return (
-                                            <tr key={restaurantId} className="hover:bg-gray-50">
-                                                <td className="px-6 py-4 whitespace-nowrap border-b border-gray-300">
-                                                    {restaurantId}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap border-b border-gray-300">
-                                                    {restaurant.name}
-                                                </td>
-                                                <td className="px-6 py-4 border-b border-gray-300">
-                                                    {restaurant.description}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap border-b border-gray-300">
-                                                    {restaurant.location}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap border-b border-gray-300">
-                                                    {restaurant.email}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap border-b border-gray-300">
-                                                    {imagePath && (
-                                                        <div className="flex items-center justify-center">
-                                                            <img 
-                                                                src={`https://localhost:7251/RestImages/${imagePath}`}
-                                                                alt={restaurant.name}
-                                                                className="h-20 w-20 object-cover rounded"
-                                                                style={{ height: '100px', objectFit: 'cover' }}
-                                                                onError={(e) => {
-                                                                    console.error('Image failed to load:', e.target.src);
-                                                                    e.target.onerror = null;
-                                                                    e.target.src = 'https://via.placeholder.com/100';
-                                                                }}
-                                                            />
-                                                        </div>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap border-b border-gray-300">
-                                                    <button
-                                                        onClick={() => {
-                                                            try {
-                                                                console.log('Update clicked for restaurant:', restaurant);
-                                                                const id = restaurant.restaurantID || restaurant.id || restaurant.RestaurantID;
-                                                                console.log('Restaurant ID being passed:', id);
-                                                                
-                                                                if (!id) {
-                                                                    throw new Error('No valid restaurant ID found');
-                                                                }
-
-                                                                console.log('Navigating to update page with ID:', id);
-                                                                navigate(`/admin/update-restaurant/${id}?restaurantId=${id}`);
-                                                            } catch (error) {
-                                                                console.error('Error navigating to update page:', error);
-                                                                Swal.fire({
-                                                                    icon: 'error',
-                                                                    title: 'Error',
-                                                                    text: error.message || 'Failed to navigate to update page'
-                                                                });
-                                                            }
-                                                        }}
-                                                        className="btn btn-warning"
-                                                    >
-                                                        Update
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {/* Pagination */}
-                        <div className="mt-4 flex justify-center items-center">
-                            <button
-                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                disabled={currentPage === 1}
-                                className="btn btn-info"
-                            >
-                                Previous
-                            </button>
-                            <span className="px-4 py-2">
-                                Page {currentPage} of {totalPages}
-                            </span>
-                            <button
-                                onClick={() => setCurrentPage(prev => prev + 1)}
-                                disabled={currentPage >= totalPages}
-                                className="btn btn-success"
-                            >
-                                Next
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </main>
+        <div className="min-vh-100 main">
+        <main className="container py-5 ">
+        <div className="mb-4">
+        <h1 className="mb-4 text-center fs-1">My Restaurants</h1>
         </div>
+
+        <div className="row">
+        {restaurants.map((restaurant) => {
+            const restaurantId = restaurant.restaurantID;
+            const imagePath =
+            restaurant.restImg ||
+            restaurant.imgUrl ||
+            restaurant.image ||
+            restaurant.imageUrl ||
+            restaurant.restaurantImage;
+
+            return (
+            <div className="col-md-4 mb-4" key={restaurantId}>
+                <div className="card shadow h-100">
+                {imagePath && (
+                    <img
+                    src={`https://localhost:7251/RestImages/${imagePath}`}
+                    alt={restaurant.name}
+                    className="card-img-top"
+                    style={{ height: '200px', objectFit: 'cover' }}
+                    onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = 'https://via.placeholder.com/200';
+                    }}
+                    />
+                )}
+                <div className="card-body d-flex flex-column">
+                    <h5 className="card-title">Name : {restaurant.name}</h5>
+                    <p className="card-text">Description : {restaurant.description}</p>
+                    <p className="card-text text-muted">Location : {restaurant.location}</p>
+                    <button
+                    className="btn1 mt-auto"
+                    onClick={() => {
+                        try {
+                        const id =
+                            restaurant.restaurantID ||
+                            restaurant.id ||
+                            restaurant.RestaurantID;
+
+                        if (!id) throw new Error('No valid restaurant ID found');
+
+                        navigate(`/admin/update-restaurant/${id}?restaurantId=${id}`);
+                        } catch (error) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: error.message || 'Failed to navigate to update page',
+                        });
+                        }
+                    }}
+                    >
+                    Update
+                    </button>
+                </div>
+                </div>
+            </div>
+            );
+        })}
+        </div>
+
+        {/* Pagination */}
+        <div className="d-flex justify-content-center align-items-center mt-4 gap-3">
+        <button
+            className="btn btn-info"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+        >
+            Previous
+        </button>
+        <span>
+            Page {currentPage} of {totalPages}
+        </span>
+        <button
+            className="btn btn-success"
+            disabled={currentPage >= totalPages}
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+        >
+            Next
+        </button>
+        </div>
+        </main>
+        </div>
+    
+
     );
 };
 

@@ -120,58 +120,53 @@ const UpdateFoodCategory = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            <header className="bg-white shadow">
-                <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-                    <h1 className="text-2xl font-bold text-gray-900">Update Food Category</h1>
-                    <button
-                        onClick={() => navigate(-1)}
-                        className="btn btn-primary"
-                    >
-                        Back
-                    </button>
-                </div>
-            </header>
-
-            <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                <div className="px-4 py-6 sm:px-0">
-                    <div className="bg-white shadow rounded-lg p-6">
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label htmlFor="categoryName" className="block text-sm font-medium text-gray-700">
-                                    Category Name
-                                </label>
-                                <input
-                                    type="text"
-                                    id="categoryName"
-                                    value={categoryName}
-                                    onChange={(e) => setCategoryName(e.target.value)}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                    required
-                                    placeholder="Enter category name"
-                                />
-                            </div>
-                            
-                            <div className="flex justify-end space-x-3">
-                                <button
-                                    type="button"
-                                    onClick={() => navigate(-1)}
-                                    className="btn btn-secondary"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="btn btn-success"
-                                >
-                                    Update Category
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </main>
+        <div className="min-vh-100 bg-light">
+    <header className="bg-white border-bottom py-3 mb-4">
+        <div className="container d-flex justify-content-between align-items-center">
+            <h1 className="section-title m-0">Update Food Category</h1>
+            <button onClick={() => navigate(-1)} className="btn btn-primary">
+                Back
+            </button>
         </div>
+    </header>
+
+    <main className="container">
+        <div className="card shadow-sm">
+            <div className="card-body">
+                <form onSubmit={handleSubmit}>
+                    <div className="mb-3">
+                        <label htmlFor="categoryName" className="form-label">
+                            Category Name
+                        </label>
+                        <input
+                            type="text"
+                            id="categoryName"
+                            value={categoryName}
+                            onChange={(e) => setCategoryName(e.target.value)}
+                            className="form-control"
+                            placeholder="Enter category name"
+                            required
+                        />
+                    </div>
+
+                    <div className="d-flex justify-content-end gap-2">
+                        <button
+                            type="button"
+                            onClick={() => navigate(-1)}
+                            className="btn btn-secondary"
+                        >
+                            Cancel
+                        </button>
+                        <button type="submit" className="btn btn-success">
+                            Update Category
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+
     );
 };
 

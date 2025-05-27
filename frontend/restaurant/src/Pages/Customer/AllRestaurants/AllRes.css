@@ -1,0 +1,35 @@
+/* تعديل التابس لتتناسب مع تصميم الموقع */
+/* تعديل التابس لتتناسب مع تصميم الموقع */
+.nav-pills .nav-link {
+  background-color: #f8f9fa; /* لون الخلفية للتابز */
+  color: #495057; /* لون النص */
+  border-radius: 0.25rem; /* زاوية التاب */
+  font-weight: bold;
+  margin: 0 10px; /* إضافة مسافة بين التابات */
+  padding: 10px 20px; /* إضافة مسافة داخلية */
+}
+
+.nav-pills .nav-link.active {
+  background-color: #ff7f00; /* نفس لون الأزرار في الموقع */
+  color: white; /* لون النص عند التحديد */
+  border-color: #ff7f00;
+}
+
+.nav-pills .nav-link:hover {
+  background-color: #f0f0f0; /* لون التابز عند التمرير عليها */
+}
+
+/* تنسيق التابس وضمان وجود مسافات بينها */
+.tabs {
+  display: flex;
+  justify-content: center; /* لتحريك التابس للمنتصف */
+  margin-bottom: 20px; /* المسافة أسفل التابس */
+}
+
+/* تخصيص خصائص nav-pills لجعل التابس في المنتصف */
+.nav-pills {
+  display: flex; /* عرض التابات في سطر واحد */
+  justify-content: center; /* مركزة التابات */
+  list-style: none; /* إزالة النقاط */
+  padding-left: 0; /* إزالة المسافة الداخلية */
+}

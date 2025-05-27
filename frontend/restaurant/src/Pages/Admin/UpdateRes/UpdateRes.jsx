@@ -146,127 +146,111 @@ const UpdateRes = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            {/* Header */}
-            <header className="bg-white shadow">
-                <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-                    <h1 className="text-2xl font-bold text-gray-900">Update Restaurant</h1>
-                    <button
-                        onClick={() => navigate('/admin/admin-restaurants')}
-                        className="btn btn-secondary"
-                    >
-                        Back to Restaurants
-                    </button>
-                </div>
-            </header>
+    <div className="min-vh-100">
 
-            {/* Main Content */}
-            <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                <div className="px-4 py-6 sm:px-0">
-                    <div className="bg-white shadow rounded-lg p-6">
-                        <h2 className="text-xl font-semibold mb-4">Update Restaurant Details</h2>
-                        
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label htmlFor="Name" className="block text-sm font-medium text-gray-700">
-                                    Restaurant Name
-                                </label>
-                                <input
-                                    type="text"
-                                    id="Name"
-                                    name="Name"
-                                    value={formData.Name}
-                                    onChange={handleInputChange}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                    required
-                                />
-                            </div>
+    {/* Main Content */}
+    <main className="container">
+        <div className="card shadow border-0 rounded-4">
+        <div className="card-body main">
+            <h1 className="card-title mb-4 text-center">Update Restaurant Details</h1>
 
-                            <div>
-                                <label htmlFor="Description" className="block text-sm font-medium text-gray-700">
-                                    Description
-                                </label>
-                                <textarea
-                                    id="Description"
-                                    name="Description"
-                                    value={formData.Description}
-                                    onChange={handleInputChange}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                    rows="3"
-                                    required
-                                />
-                            </div>
+            <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+                <label htmlFor="Name" className="form-label">
+                Restaurant Name
+                </label>
+                <input
+                type="text"
+                id="Name"
+                name="Name"
+                value={formData.Name}
+                onChange={handleInputChange}
+                className="form-control"
+                required
+                />
+            </div>
 
-                            <div>
-                                <label htmlFor="Location" className="block text-sm font-medium text-gray-700">
-                                    Location
-                                </label>
-                                <input
-                                    type="text"
-                                    id="Location"
-                                    name="Location"
-                                    value={formData.Location}
-                                    onChange={handleInputChange}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                    required
-                                />
-                            </div>
+            <div className="mb-3">
+                <label htmlFor="Description" className="form-label">
+                Description
+                </label>
+                <textarea
+                id="Description"
+                name="Description"
+                value={formData.Description}
+                onChange={handleInputChange}
+                className="form-control"
+                rows="3"
+                required
+                />
+            </div>
 
-                            <div>
-                                <label htmlFor="Email" className="block text-sm font-medium text-gray-700">
-                                    Email
-                                </label>
-                                <input
-                                    type="email"
-                                    id="Email"
-                                    name="Email"
-                                    value={formData.Email}
-                                    onChange={handleInputChange}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                    required
-                                />
-                            </div>
+            <div className="mb-3">
+                <label htmlFor="Location" className="form-label">
+                Location
+                </label>
+                <input
+                type="text"
+                id="Location"
+                name="Location"
+                value={formData.Location}
+                onChange={handleInputChange}
+                className="form-control"
+                required
+                />
+            </div>
 
-                            <div>
-                                <label htmlFor="RestImg" className="block text-sm font-medium text-gray-700">
-                                    Restaurant Image
-                                </label>
-                                <input
-                                    type="file"
-                                    id="RestImg"
-                                    name="RestImg"
-                                    onChange={handleFileChange}
-                                    className="mt-1 block w-full text-sm text-gray-500
-                                    file:mr-4 file:py-2 file:px-4
-                                    file:rounded-md file:border-0
-                                    file:text-sm file:font-semibold
-                                    file:bg-indigo-50 file:text-indigo-700
-                                    hover:file:bg-indigo-100"
-                                    accept="image/*"
-                                />
-                            </div>
+            <div className="mb-3">
+                <label htmlFor="Email" className="form-label">
+                Email
+                </label>
+                <input
+                type="email"
+                id="Email"
+                name="Email"
+                value={formData.Email}
+                onChange={handleInputChange}
+                className="form-control"
+                required
+                />
+            </div>
 
-                            <div className="flex justify-end space-x-4">
-                                <button
-                                    type="button"
-                                    onClick={() => navigate('/admin/admin-restaurants')}
-                                    className="btn btn-secondary"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="btn btn-primary"
-                                >
-                                    {loading ? 'Updating...' : 'Update Restaurant'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </main>
+            <div className="mb-4">
+                <label htmlFor="RestImg" className="form-label">
+                Restaurant Image
+                </label>
+                <input
+                type="file"
+                id="RestImg"
+                name="RestImg"
+                onChange={handleFileChange}
+                className="form-control"
+                accept="image/*"
+                />
+            </div>
+
+            <div className="d-flex justify-content-end gap-2">
+                <button
+                type="button"
+                onClick={() => navigate('/admin/admin-restaurants')}
+                className="btn btn-outline-danger"
+                >
+                Cancel
+                </button>
+                <button
+                type="submit"
+                disabled={loading}
+                className="btn1"
+                >
+                {loading ? 'Updating...' : 'Update Restaurant'}
+                </button>
+            </div>
+            </form>
         </div>
+        </div>
+    </main>
+    </div>
+
     );
 };
 

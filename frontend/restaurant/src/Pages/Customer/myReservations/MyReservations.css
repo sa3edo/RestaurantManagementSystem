@@ -19,14 +19,14 @@
     justify-content: center;
 }
 
-.reservation-card {
+/* .reservation-card {
     background: white;
     border-radius: 15px;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
     padding: 1.5rem;
     width: 280px;
     transition: transform 0.3s ease;
-}
+} */
 
 .reservation-card:hover {
     transform: translateY(-5px);

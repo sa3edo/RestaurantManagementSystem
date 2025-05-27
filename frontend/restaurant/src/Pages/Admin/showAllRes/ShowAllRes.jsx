@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import '../../../App.css'
 
 const ShowAllRes = () => {
     const [restaurants, setRestaurants] = useState([]);
@@ -12,30 +13,7 @@ const ShowAllRes = () => {
     const [foodCategories, setFoodCategories] = useState({});
     const navigate = useNavigate();
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('role');
-        navigate('/login');
-    };
 
-    const fetchFoodCategories = async (restaurantId) => {
-        try {
-            const token = localStorage.getItem('token');
-            const response = await axios.get(
-                `https://localhost:7251/api/admin/GetFoodCategories?restaurantId=${restaurantId}`,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'accept': '*/*'
-                    }
-                }
-            );
-            return response.data || [];
-        } catch (error) {
-            console.error(`Error fetching food categories for restaurant ${restaurantId}:`, error);
-            return [];
-        }
-    };
 
     const fetchRestaurants = async (page) => {
         try {
@@ -88,35 +66,14 @@ const ShowAllRes = () => {
             // Log the processed data
             console.log('Processed Restaurants Data:', restaurantsData);
 
-            // Fetch food categories for each restaurant
-            const categoriesPromises = restaurantsData.map(async restaurant => {
-                try {
-                    const categories = await fetchFoodCategories(restaurant.restaurantID);
-                    return { restaurantId: restaurant.restaurantID, categories };
-                } catch (error) {
-                    console.warn(`Skipping food categories for restaurant ${restaurant.restaurantID} due to error:`, error);
-                    return { restaurantId: restaurant.restaurantID, categories: [] };
-                }
-            });
 
-            const categoriesResults = await Promise.all(categoriesPromises);
-
-            const categoriesMap = {};
-            categoriesResults.forEach(({ restaurantId, categories }) => {
-                if (restaurantId) {
-                    categoriesMap[restaurantId] = categories;
-                }
-            });
-
-            setFoodCategories(categoriesMap);
             setRestaurants(restaurantsData);
             setError(null);
         } catch (err) {
             setError('Failed to fetch restaurants');
             console.error('Error fetching restaurants:', err);
-            if (err.response?.status === 401) {
-                handleLogout();
-            }
+           
+            
         } finally {
             setLoading(false);
         }
@@ -128,57 +85,42 @@ const ShowAllRes = () => {
 
     const handleDeleteRestaurant = async (restaurantId) => {
         try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+    
+            // Show confirmation dialog
             const result = await Swal.fire({
                 title: 'Are you sure?',
                 text: "You won't be able to revert this!",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
                 confirmButtonText: 'Yes, delete it!'
             });
-
+    
             if (result.isConfirmed) {
-                const token = localStorage.getItem('token');
-                if (!token) {
-                    throw new Error('No authentication token found');
-                }
-
-                const response = await axios.delete(
-                    `https://localhost:7251/api/admin/DeleteRestaurant/${restaurantId}`,
+                await axios.delete(
+                   ` https://localhost:7251/api/admin/DeleteRestaurant/${restaurantId}`,
                     {
                         headers: {
                             'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json'
+                            'accept': '/',
                         }
                     }
                 );
-
-                if (response.status === 200) {
-                    // Remove the deleted restaurant from the state
-                    setRestaurants(prevRestaurants =>
-                        prevRestaurants.filter(restaurant => {
-                            const currentId = restaurant.id || restaurant.restaurantID || restaurant.RestaurantID;
-                            return currentId !== restaurantId;
-                        })
-                    );
-
-                    // Show success alert with timer
-                    await Swal.fire({
-                        title: 'Success!',
-                        text: 'This restaurant and all its related data were deleted successfully.',
-                        icon: 'success',
-                        timer: 2000,
-                        showConfirmButton: false,
-                        position: 'top-end',
-                        toast: true,
-                        background: '#4CAF50',
-                        color: 'white'
-                    });
-
-                    // Refresh the restaurants list
-                    fetchRestaurants(currentPage);
-                }
+    
+                // Show success message
+                await Swal.fire(
+                    'Deleted!',
+                    'Restaurant and all related data have been deleted.',
+                    'success'
+                );
+    
+                // Refresh the restaurants list
+                fetchRestaurants(currentPage);
             }
         } catch (err) {
             console.error('Delete error:', err);
@@ -188,7 +130,7 @@ const ShowAllRes = () => {
             if (err.response) {
                 if (err.response.status === 401) {
                     errorMessage = 'Unauthorized. Please login again.';
-                    handleLogout();
+                  
                 } else if (err.response.status === 404) {
                     errorMessage = 'Restaurant not found.';
                 } else if (err.response.data) {
@@ -207,402 +149,299 @@ const ShowAllRes = () => {
     };
 
 
-    const handleApproveRestaurant = async (restaurantId) => {
-        try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                throw new Error('No authentication token found');
-            }
-
-            console.log('Approving restaurant with ID:', restaurantId);
-
-            const response = await axios.put(
-                `https://localhost:7251/api/admin/restaurants/${restaurantId}/approve`,
-                {},
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'accept': '*/*',
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
-
-            if (response.status === 200) {
-                // Update the restaurant status in the local state
-                setRestaurants(prevRestaurants =>
-                    prevRestaurants.map(restaurant =>
-                        restaurant.restaurantID === restaurantId
-                            ? { ...restaurant, status: 1 }
-                            : restaurant
-                    )
-                );
-
-                // Show success message
-                Swal.fire({
-                    title: 'Success!',
-                    text: 'Restaurant has been approved successfully.',
-                    icon: 'success',
-                    confirmButtonText: 'OK'
-                });
-            }
-        } catch (err) {
-            console.error('Error approving restaurant:', err);
-            Swal.fire(
-                'Error!',
-                'Failed to approve restaurant',
-                'error'
-            );
+const handleApproveRestaurant = async (restaurantId) => {
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            throw new Error('No authentication token found');
         }
-    };
 
-    const handleRejectRestaurant = async (restaurantId) => {
-        try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                throw new Error('No authentication token found');
-            }
+        console.log('Approving restaurant with ID:', restaurantId);
 
-            console.log('Rejecting restaurant with ID:', restaurantId);
-
-            const response = await axios.put(
-                `https://localhost:7251/api/admin/restaurants/${restaurantId}/reject`,
-                {},
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'accept': '*/*',
-                        'Content-Type': 'application/json'
-                    }
+        const response = await axios.put(
+            `https://localhost:7251/api/admin/restaurants/${restaurantId}/approve`,
+            {},
+            {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'accept': '*/*',
+                    'Content-Type': 'application/json'
                 }
-            );
-
-            if (response.status === 200) {
-                // Update the restaurant status in the local state
-                setRestaurants(prevRestaurants =>
-                    prevRestaurants.map(restaurant =>
-                        restaurant.restaurantID === restaurantId
-                            ? { ...restaurant, status: 2 }
-                            : restaurant
-                    )
-                );
-
-                // Show success message
-                Swal.fire({
-                    title: 'Success!',
-                    text: 'Restaurant has been rejected successfully.',
-                    icon: 'success',
-                    confirmButtonText: 'OK'
-                });
             }
-        } catch (err) {
-            console.error('Error rejecting restaurant:', err);
-            Swal.fire(
-                'Error!',
-                'Failed to reject restaurant',
-                'error'
-            );
+        );
+
+        if (response.status === 200) {
+            // ✅ Re-fetch data from API to reflect the new status
+            fetchRestaurants(currentPage);
+
+            Swal.fire({
+                title: 'Success!',
+                text: 'Restaurant has been approved successfully.',
+                icon: 'success',
+                confirmButtonText: 'OK'
+            });
         }
-    };
+    } catch (err) {
+        console.error('Error approving restaurant:', err);
+        Swal.fire(
+            'Error!',
+            'Failed to approve restaurant',
+            'error'
+        );
+    }
+};
+
+
+const handleRejectRestaurant = async (restaurantId) => {
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            throw new Error('No authentication token found');
+        }
+
+        console.log('Rejecting restaurant with ID:', restaurantId);
+
+        const response = await axios.put(
+            `https://localhost:7251/api/admin/restaurants/${restaurantId}/reject`,
+            {},
+            {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'accept': '*/*',
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+
+        if (response.status === 200) {
+            // ✅ Re-fetch data from API to reflect the new status
+            fetchRestaurants(currentPage);
+
+            Swal.fire({
+                title: 'Success!',
+                text: 'Restaurant has been rejected successfully.',
+                icon: 'success',
+                confirmButtonText: 'OK'
+            });
+        }
+    } catch (err) {
+        console.error('Error rejecting restaurant:', err);
+        Swal.fire(
+            'Error!',
+            'Failed to reject restaurant',
+            'error'
+        );
+    }
+};
+
 
     if (loading) return <div className="text-center p-4">Loading...</div>;
     if (error) return <div className="text-center p-4 text-red-500">Error: {error}</div>;
 
     return (
-        <div className="min-h-screen bg-gray-100">
+        <div className=" container-fluid min-vh-100 main" >
             {/* Header */}
-            <header className="bg-white shadow">
-                <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-                    <h1 className="text-2xl font-bold text-gray-900">All Restaurants</h1>
-                    <div className="flex space-x-4">
-                    <button
-                                onClick={() => navigate('/admin/add-restaurant')}
-                                className="btn btn-primary"
-                            >
-                                Create Restaurant
-                            </button>
-                            <button
-                                onClick={() => navigate('/admin/all-restaurants')}
-                                className="btn btn-primary"
-                            >
-                                Show All Restaurants
-                            </button>
-                            <button
-                                onClick={() => navigate('/admin/add-restaurant-manager')}
-                                className="btn btn-primary"
-                            >
-                                Add Restaurant Manager
-                            </button>
-                            <button
-                                onClick={() => navigate('/admin/admin-restaurants')}
-                                className="btn btn-primary"
-                            >
-                                Show Admin Restaurants
-                            </button>
-                            {/* <button
-                                onClick={() => navigate('/admin/getAllOrders')}
-                                className="btn btn-primary"
-                            >
-                                Show All Orders
-                            </button> */}
+            <header className="">
+                <div className="container-fluid py-3 d-flex justify-content-between align-items-center">
+                    <h1 className="section-title">All Restaurants</h1>
+                    <div className="d-flex flex-wrap gap-2">
+                        <button onClick={() => navigate('/admin/add-restaurant')} className="btn1 btn2 ">
+                            Create Restaurant
+                        </button>
+                        <button onClick={() => navigate('/admin/add-restaurant-manager')} className="btn1  btn2">
+                            Add Restaurant Manager
+                        </button>
+                        <button onClick={() => navigate('/admin/admin-restaurants')} className="btn1 btn2 ">
+                            Show Admin Restaurants
+                        </button>
+                        <button onClick={() => navigate('/admin/GetAllUsers')} className="btn1 btn2 ">
+                            Show All Users
+                        </button>
                     </div>
                 </div>
             </header>
 
             {/* Main Content */}
-            <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                <div className="px-4 py-6 sm:px-0">
-                    <div className="bg-white shadow rounded-lg p-6">
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full bg-white border border-gray-300">
-                                <thead>
-                                    <tr>
-                                        <th className="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            ID
-                                        </th>
-                                        <th className="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Name
-                                        </th>
-                                        <th className="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Description
-                                        </th>
-                                        <th className="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Location
-                                        </th>
-                                        <th className="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Email
-                                        </th>
-                                        <th className="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Image
-                                        </th>
-                                        <th className="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Status
-                                        </th>
-                                        <th className="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Show Categories
-                                        </th>
-                                        <th className="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Add Food Category
-                                        </th>
-                                        <th className="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Actions
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {restaurants.map((restaurant) => {
-                                        const restaurantId = restaurant.restaurantID;
-                                        const categories = foodCategories[restaurantId] || [];
+            <main className="container-fluid py-5">
+                <div className="cards p-4">
+                    {/* Card Grid for Restaurants */}
+                    <div className="row g-4">
+                        {restaurants.map((restaurant) => {
+                            const restaurantId = restaurant.restaurantID;
+                            const categories = foodCategories[restaurantId] || [];
+                            const imagePath =
+                                restaurant.restImg ||
+                                restaurant.imgUrl ||
+                                restaurant.image ||
+                                restaurant.imageUrl ||
+                                restaurant.restaurantImage;
 
-                                        // Try different possible image property names
-                                        const imagePath = restaurant.restImg ||
-                                            restaurant.imgUrl ||
-                                            restaurant.image ||
-                                            restaurant.imageUrl ||
-                                            restaurant.restaurantImage;
+                            return (
+                                <div key={restaurantId} className="col-md-6 col-lg-4">
+                                    <div className="card admin-card bg-white shadow-sm h-100">
+                                        {imagePath && (
+                                            <img
+                                                src={`https://localhost:7251/RestImages/${imagePath}`}
+                                                alt={restaurant.name}
+                                                className="card-img-top"
+                                                style={{ height: '200px', objectFit: 'cover' }}
+                                                onError={(e) => {
+                                                    console.error('Image failed to load:', e.target.src);
+                                                    e.target.onerror = null;
+                                                    e.target.src = 'https://via.placeholder.com/200';
+                                                }}
+                                            />
+                                        )}
+                                        <div className="card-body d-flex flex-column">
+                                            <h5 className="card-title">{restaurant.name}</h5>
+                                            <p className="card-text">
+                                                <strong>Location:</strong> {restaurant.location}
+                                            </p>
+                                            <div className="mb-2">
+                                                <strong>Status:</strong>{' '}
+                                                {restaurant.status === 0 ? 'Pending' : restaurant.status === 1 ? 'Approved' : restaurant.status === 2 ? 'Rejected' : 'Unknown'}
+                                            </div>
 
-                                        return (
-                                            <tr key={restaurantId} className="hover:bg-gray-50">
-                                                <td className="px-6 py-4 whitespace-nowrap border-b border-gray-300">
-                                                    {restaurantId}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap border-b border-gray-300">
-                                                    {restaurant.name}
-                                                </td>
-                                                <td className="px-6 py-4 border-b border-gray-300">
-                                                    {restaurant.description}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap border-b border-gray-300">
-                                                    {restaurant.location}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap border-b border-gray-300">
-                                                    {restaurant.email}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap border-b border-gray-300">
-                                                    {imagePath && (
-                                                        <div className="flex items-center justify-center">
-                                                            <img
-                                                                src={`https://localhost:7251/RestImages/${imagePath}`}
-                                                                alt={restaurant.name}
-                                                                className="h-20 w-20 object-cover rounded"
-                                                                style={{ height: '100px', objectFit: 'cover' }}
-                                                                onError={(e) => {
-                                                                    console.error('Image failed to load:', e.target.src);
-                                                                    e.target.onerror = null;
-                                                                    e.target.src = 'https://via.placeholder.com/100';
-                                                                }}
-                                                            />
-                                                        </div>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap border-b border-gray-300">
-                                                    {restaurant.status === 0 ? (
-                                                        <div className="flex space-x-2">
-                                                            <button
-                                                                onClick={() => {
-                                                                    console.log('Button clicked for restaurant:', restaurant);
-                                                                    const idToApprove = restaurant.restaurantID;
-
-                                                                    console.log('ID to approve:', idToApprove);
-
-                                                                    if (idToApprove) {
-                                                                        handleApproveRestaurant(idToApprove);
-                                                                    } else {
-                                                                        console.error('No valid ID found for restaurant:', restaurant);
-                                                                        Swal.fire(
-                                                                            'Error!',
-                                                                            'Could not find restaurant ID',
-                                                                            'error'
-                                                                        );
-                                                                    }
-                                                                }}
-                                                                className="btn btn-primary"
-                                                            >
-                                                                Approve
-                                                            </button>
-                                                            <button
-                                                                onClick={() => {
-                                                                    console.log('Button clicked for restaurant:', restaurant);
-                                                                    const idToReject = restaurant.restaurantID;
-
-                                                                    console.log('ID to reject:', idToReject);
-
-                                                                    if (idToReject) {
-                                                                        handleRejectRestaurant(idToReject);
-                                                                    } else {
-                                                                        console.error('No valid ID found for restaurant:', restaurant);
-                                                                        Swal.fire(
-                                                                            'Error!',
-                                                                            'Could not find restaurant ID',
-                                                                            'error'
-                                                                        );
-                                                                    }
-                                                                }}
-                                                                className="btn btn-danger"
-                                                            >
-                                                                Reject
-                                                            </button>
-                                                        </div>
-                                                    ) : (
-                                                        restaurant.status === 1 ? 'Approved' :
-                                                            restaurant.status === 2 ? 'Rejected' : 'Unknown'
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap border-b border-gray-300">
-                                                    <button
-                                                        onClick={() => navigate(`/admin/show-food-categories/${restaurantId}`)}
-                                                        className="btn btn-info"
-                                                    >
-                                                        Show Categories
+                                            {restaurant.status === 0 && (
+                                                <div className="d-flex gap-2 mb-2">
+                                                    <button onClick={() => handleApproveRestaurant(restaurantId)} className="btn btn-success btn-sm w-100">
+                                                        Approve
                                                     </button>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap border-b border-gray-300">
-                                                    {categories.length === 0 && (
-                                                        <button
-                                                            onClick={() => {
-                                                                const restaurantId = restaurant.restaurantID;
-                                                                if (restaurantId) {
-                                                                    navigate(`/admin/addFoodCategory/${restaurantId}`);
-                                                                } else {
-                                                                    Swal.fire(
-                                                                        'Error!',
-                                                                        'Could not find restaurant ID',
-                                                                        'error'
-                                                                    );
-                                                                }
-                                                            }}
-                                                            className="btn btn-success"
-                                                        >
-                                                            Add Food Category
-                                                        </button>
-                                                    )}
-                                                    {categories.length > 0 && (
-                                                        <div className="flex flex-wrap gap-1">
-                                                            {categories.map(category => (
-                                                                <span
-                                                                    key={category.categoryID || category.id}
-                                                                    className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm"
+                                                    <button onClick={() => handleRejectRestaurant(restaurantId)} className="btn btn-danger btn-sm w-100">
+                                                        Reject
+                                                    </button>
+                                                </div>
+                                            )}
+
+                                            <div className="d-flex gap-2 mt-auto">
+
+                                                {/* Categories Dropdown */}
+                                                <div className="dropdown">
+                                                    <button
+                                                        className=" btn1 "
+                                                        type="button"
+                                                        data-bs-toggle="dropdown"
+                                                        aria-expanded="false"
+                                                    >
+                                                        <i className="fas fa-folder-open me-1"></i> Categories
+                                                    </button>
+                                                    <ul className="dropdown-menu shadow-sm border-0 rounded-3 p-2 ">
+                                                        <li>
+                                                            <button
+                                                                className="dropdown-item"
+                                                                onClick={() => navigate(`/admin/show-food-categories/${restaurantId}`)}
+                                                            >
+                                                                <i className="fas fa-eye me-2"></i> Show Categories
+                                                            </button>
+                                                        </li>
+                                                        {categories.length === 0 && (
+                                                            <li>
+                                                                <button
+                                                                    className="dropdown-item"
+                                                                    onClick={() => navigate(`/admin/addFoodCategory/${restaurantId}`)}
                                                                 >
-                                                                    {category.name}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap border-b border-gray-300">
-                                                    <button
-                                                        onClick={() => {
-                                                            console.log('Delete button clicked for restaurant:', restaurant);
-                                                            console.log('Restaurant ID to delete:', restaurantId);
-                                                            if (restaurantId) {
-                                                                handleDeleteRestaurant(restaurantId);
-                                                            } else {
-                                                                console.error('No valid ID found for restaurant:', restaurant);
-                                                                Swal.fire(
-                                                                    'Error!',
-                                                                    'Could not find restaurant ID',
-                                                                    'error'
-                                                                );
-                                                            }
-                                                        }}
-                                                        className="btn btn-danger"
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    <div className="flex space-x-2">
-                                                        <button
-                                                            onClick={() => navigate(`/admin/getAllOrders?RestaurantId=${restaurant.restaurantID}`)}
-                                                            className="btn btn-warning"
-                                                        >
-                                                            Get All Orders
-                                                        </button>
-                                                        <button
-                                                            onClick={() => navigate(`/admin/ShowReservations?restaurantId=${restaurant.restaurantID}`)}
-                                                            className="btn btn-warning"
-                                                        >
-                                                            Show Reservations
-                                                        </button>
-                                                        <button
-                                                            onClick={() => navigate(`/admin/GetRestaurantReviews?RestID=${restaurant.restaurantID}`)}
-                                                            className="btn btn-info"
-                                                        >
-                                                            Review
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
+                                                                    <i className="fas fa-plus me-2"></i> Add Food Category
+                                                                </button>
+                                                            </li>
+                                                        )}
+                                                    </ul>
+                                                </div>
 
-                        {/* Pagination */}
-                        <div className="mt-4 flex justify-center items-center">
-                            <button
-                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                disabled={currentPage === 1}
-                                className="btn btn-info"
-                            >
-                                Previous
-                            </button>
-                            <span className="px-4 py-2">
-                                Page {currentPage} of {totalPages}
-                            </span>
-                            <button
-                                onClick={() => setCurrentPage(prev => prev + 1)}
-                                disabled={currentPage >= totalPages}
-                                className="btn btn-success"
-                            >
-                                Next
-                            </button>
-                        </div>
+                                                {/* Orders & Reservations Dropdown */}
+                                                <div className="dropdown">
+                                                    <button
+                                                        className=" btn1 "
+                                                        type="button"
+                                                        data-bs-toggle="dropdown"
+                                                        aria-expanded="false"
+                                                    >
+                                                        <i className="fas fa-receipt me-1"></i> Orders & <i className="fas fa-calendar-alt ms-1"></i> Reservations
+                                                    </button>
+                                                    <ul className="dropdown-menu shadow-sm border-0 rounded-3 p-2 ">
+                                                        <li>
+                                                            <button
+                                                                className="dropdown-item"
+                                                                onClick={() => navigate(`/admin/getAllOrders?RestaurantId=${restaurantId}`)}
+                                                            >
+                                                                <i className="fas fa-box me-2"></i> Get All Orders
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            <button
+                                                                className="dropdown-item"
+                                                                onClick={() => navigate(`/admin/ShowReservations?restaurantId=${restaurantId}`)}
+                                                            >
+                                                                <i className="fas fa-calendar-check me-2"></i> Show Reservations
+                                                            </button>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+
+                                                {/* Other Actions Dropdown */}
+                                                <div className="dropdown">
+                                                    <button
+                                                        className=" btn1 "
+                                            
+                                                        type="button"
+                                                        data-bs-toggle="dropdown"
+                                                        aria-expanded="false"
+                                                    >
+                                                        <i className="fas fa-cogs me-1"></i> Other Actions
+                                                    </button>
+                                                    <ul className="dropdown-menu shadow-sm border-0 rounded-3 p-2 ">
+                                                        <li>
+                                                            <button
+                                                                className="dropdown-item"
+                                                                onClick={() => navigate(`/admin/GetRestaurantReviews?RestID=${restaurantId}`)}
+                                                            >
+                                                                <i className="fas fa-star me-2"></i> Show Reviews
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            <button
+                                                                className="dropdown-item text-danger"
+                                                                onClick={() => handleDeleteRestaurant(restaurantId)}
+                                                            >
+                                                                <i className="fas fa-trash-alt me-2"></i> Delete Restaurant
+                                                            </button>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+
+                                            </div>
+
+
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Pagination */}
+                    <div className="d-flex justify-content-center align-items-center mt-4 gap-3">
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="btn btn-outline-primary"
+                        >
+                            Previous
+                        </button>
+                        <span className="fw-medium text-black">Page {currentPage} of {totalPages}</span>
+                        <button
+                            onClick={() => setCurrentPage(prev => prev + 1)}
+                            // disabled={currentPage >= totalPages}
+                            className="btn btn-primary"
+                        >
+                            Next
+                        </button>
                     </div>
                 </div>
             </main>
         </div>
+
+
+
     );
 };
 

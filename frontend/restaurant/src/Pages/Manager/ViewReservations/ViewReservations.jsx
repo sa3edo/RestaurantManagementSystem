@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
+import '../../Customer/myReservations/MyReservations.css';
 
 const MySwal = withReactContent(Swal);
 
@@ -32,6 +33,7 @@ export default function ViewReservations() {
 
         const fetchedReservations = Array.isArray(res.data) ? res.data : res.data?.data || [];
         setReservations(fetchedReservations);
+        console.log(fetchedReservations)
         setTimeSlots(slotsRes.data);
         setLoading(false);
       } catch (err) {
@@ -55,15 +57,6 @@ export default function ViewReservations() {
     const date = new Date();
     date.setHours(hour, minute);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-  };
-
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 0: return <span className="badge bg-warning text-dark">Pending</span>;
-      case 1: return <span className="badge bg-success">Confirmed</span>;
-      case 2: return <span className="badge bg-danger">Cancelled</span>;
-      default: return <span className="badge bg-secondary">Unknown</span>;
-    }
   };
 
   const handleConfirm = async (id) => {
@@ -122,63 +115,70 @@ export default function ViewReservations() {
     }
   };
 
-  if (loading) return <div className="text-center mt-5">Loading...</div>;
-  if (error) return <div className="text-danger text-center mt-5">{error}</div>;
+  if (loading) {
+    return (
+      <div className="flex-center">
+        <div className="loader"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="error-message text-center mt-5">{error}</div>;
+  }
 
   return (
-    <div className="container mt-5">
-      <h2 className="text-center mb-4">📅 Reservations</h2>
+    <div className="reservations-wrapper">
+      <h2 className="reservations-title">📅 Reservations</h2>
       {reservations.length === 0 ? (
-        <p className="text-center text-muted">No reservations found.</p>
+        <p className="no-data">No reservations found.</p>
       ) : (
-        <div className="table-responsive">
-          <table className="table table-hover text-center shadow-sm">
-            <thead className="table-primary">
-              <tr>
-                <th>#</th>
-                <th>Table #</th>
-                <th>Customer Email</th>
-                <th>Reservation Date</th>
-                <th>Time</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reservations.map((reservation, index) => (
-                <tr key={reservation.reservationID}>
-                  <td>{index + 1}</td>
-                  <td>{reservation.tableId}</td>
-                  <td>{reservation.customerEmail}</td>
-                  <td>{reservation.reservationDate}</td>
-                  <td>{getTimeRange(reservation.timeSlotID)}</td>
-                  <td>{getStatusBadge(reservation.status)}</td>
-                  <td>
-  {reservation.status === 0 ? (
-    <>
-      <button
-        className="btn btn-success btn-sm me-2"
-        onClick={() => handleConfirm(reservation.reservationID)}
-      >
-        ✅ Confirm
-      </button>
-      <button
-        className="btn btn-outline-danger btn-sm"
-        onClick={() => handleReject(reservation.reservationID)}
-      >
-        ❌ Reject
-      </button>
-    </>
-  ) : (
-    <button className="btn btn-secondary btn-sm" disabled>
-      No actions available
-    </button>
-  )}
-</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="reservations-grid">
+          {reservations.map((res, index) => (
+            <div className="card " key={index}>
+              <div className="card-body">
+                <h5 className="card-title text-primary">
+                  <i className="fas fa-envelope me-2"></i>
+                  {res.customerEmail}
+                </h5>
+                <ul className="list-unstyled mt-3">
+                  <li className="mb-2">
+                    <i className="fas fa-calendar-alt me-2 text-secondary"></i>
+                    <strong>Date:</strong> {res.reservationDate?.split('T')[0]}
+                  </li>
+                  <li><i class="fa-solid fa-clock text-secondary"></i><strong>Time:</strong> {formatTo12Hour(res.startTime)} - {formatTo12Hour(res.endTime)}</li>
+
+                  <li className="mb-2">
+                    <i className="fas fa-chair me-2 text-secondary"></i>
+                    <strong>Table:</strong> {res.tableId}
+                  </li>
+                  <li className="mb-2">
+                    <i className="fas fa-clipboard-list me-2 text-secondary"></i>
+                    <strong>Status:</strong>
+                    <span className={`status-pill ${res.status === 0 ? 'status-pending' : res.status === 1 ? 'status-complete' : 'status-cancel'}`}>
+                      {res.status === 0 ? 'Pending' : res.status === 1 ? 'Confirmed' : 'Cancelled'}
+                    </span>
+                  </li>
+                  {res.status === 0 && (
+                    <li className="mt-3">
+                      <button
+                        className="btn btn-success btn-sm me-2"
+                        onClick={() => handleConfirm(res.reservationID)}
+                      >
+                        ✅ Confirm
+                      </button>
+                      <button
+                        className="btn btn-outline-danger btn-sm"
+                        onClick={() => handleReject(res.reservationID)}
+                      >
+                        ❌ Reject
+                      </button>
+                    </li>
+                  )}
+                </ul>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

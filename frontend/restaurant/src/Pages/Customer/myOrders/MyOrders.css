@@ -135,3 +135,8 @@
 .card-buttons .delete-btn:hover {
   background-color: #ed4b39;
 }
+.disabled-btn {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}

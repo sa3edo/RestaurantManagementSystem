@@ -130,7 +130,7 @@ export default function ViewOrders() {
         <div className="row g-4">
           {orders.map(order => (
             <div key={order.orderID} className="col-md-6 col-lg-4">
-              <div className="card shadow-sm h-100">
+              <div className="card order-card shadow-sm h-100">
                 <div className="card-body">
                   <h5 className="card-title">Order #{order.orderID}</h5>
                   <p className="card-text mb-1"><strong>Total:</strong> ${order.totalAmount}</p>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import './CreateReservation.css';  // استيراد ملف CSS
+import './CreateReservation.css';
 
 export default function CreateReservation() {
     const { restaurantId } = useParams();
@@ -16,7 +16,6 @@ export default function CreateReservation() {
         reservationDate: ''
     });
 
-    // Format time to 12-hour format
     const formatTime = (timeString) => {
         try {
             const [hours, minutes] = timeString.split(':');
@@ -34,7 +33,6 @@ export default function CreateReservation() {
         }
     };
 
-    // Fetch time slots for the restaurant
     useEffect(() => {
         const fetchTimeSlots = async () => {
             try {
@@ -49,37 +47,28 @@ export default function CreateReservation() {
                         }
                     }
                 );
-                
                 if (response.data && Array.isArray(response.data)) {
-                    // Sort time slots by start time
-                    const sortedTimeSlots = response.data.sort((a, b) => {
-                        return a.startTime.localeCompare(b.startTime);
-                    });
-                    
-                    setTimeSlots(sortedTimeSlots);
-                    console.log('Fetched time slots:', sortedTimeSlots);
+                    const sorted = response.data.sort((a, b) =>
+                        a.startTime.localeCompare(b.startTime)
+                    );
+                    setTimeSlots(sorted);
                 } else {
-                    console.error('Invalid time slots data format:', response.data);
                     setTimeSlots([]);
                 }
             } catch (error) {
-                console.error('Error fetching time slots:', error);
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: 'Failed to fetch time slots. Please try again later.'
+                    text: 'Failed to fetch time slots.'
                 });
             } finally {
                 setLoading(false);
             }
         };
 
-        if (restaurantId) {
-            fetchTimeSlots();
-        }
+        if (restaurantId) fetchTimeSlots();
     }, [restaurantId]);
 
-    // Fetch tables for the restaurant
     useEffect(() => {
         const fetchTables = async () => {
             try {
@@ -93,28 +82,30 @@ export default function CreateReservation() {
                         }
                     }
                 );
-
                 if (response.data && Array.isArray(response.data)) {
-                    console.log('Fetched tables:', response.data);
                     setTables(response.data);
                 } else {
-                    console.error('Invalid tables data format:', response.data);
                     setTables([]);
                 }
             } catch (error) {
-                console.error('Error fetching tables:', error);
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: 'Failed to fetch tables. Please try again later.'
+                    text: 'Failed to fetch tables.'
                 });
             }
         };
 
-        if (restaurantId) {
-            fetchTables();
-        }
+        if (restaurantId) fetchTables();
     }, [restaurantId]);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -150,23 +141,14 @@ export default function CreateReservation() {
             });
 
         } catch (error) {
-            console.error('Error creating reservation:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: error.response?.data?.message || 'Failed to create reservation. Please try again.'
+                text: error.response?.data?.message || 'Failed to create reservation.'
             });
         } finally {
             setLoading(false);
         }
-    };
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
     };
 
     return (
@@ -185,6 +167,7 @@ export default function CreateReservation() {
                             required
                         />
                     </div>
+
                     <div className="form-group">
                         <label>Time Slot</label>
                         <select
@@ -195,7 +178,7 @@ export default function CreateReservation() {
                             disabled={loading}
                         >
                             <option value="">Select a time slot</option>
-                            {timeSlots && timeSlots.map((slot) => (
+                            {timeSlots.map(slot => (
                                 <option key={slot.id || slot.timeSlotID} value={slot.id || slot.timeSlotID}>
                                     {formatTime(slot.startTime)} - {formatTime(slot.endTime)}
                                 </option>
@@ -203,6 +186,7 @@ export default function CreateReservation() {
                         </select>
                         {loading && <p>Loading time slots...</p>}
                     </div>
+
                     <div className="form-group">
                         <label>Table</label>
                         <select
@@ -212,13 +196,14 @@ export default function CreateReservation() {
                             required
                         >
                             <option value="">Select a table</option>
-                            {tables && tables.map((table) => (
+                            {tables.map(table => (
                                 <option key={table.tableId} value={table.tableId}>
                                     Table {table.tableId} - {table.seats} seats
                                 </option>
                             ))}
                         </select>
                     </div>
+
                     <div className="form-actions">
                         <button
                             type="button"

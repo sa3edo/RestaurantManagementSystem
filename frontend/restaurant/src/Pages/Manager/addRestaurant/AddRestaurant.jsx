@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 
 export default function AddRestaurant() {
   const [restaurantData, setRestaurantData] = useState({
@@ -25,7 +26,11 @@ export default function AddRestaurant() {
     e.preventDefault();
 
     if (!image) {
-      alert("❌ Please select a restaurant image!");
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: '❌ Please select a restaurant image!',
+      });
       return;
     }
 
@@ -34,30 +39,41 @@ export default function AddRestaurant() {
     formData.append('Location', restaurantData.location);
     formData.append('Description', restaurantData.description);
     formData.append('RestImg', image, image.name);
-    // console.log("form data", formData.name)
+
     try {
-        const token = localStorage.getItem('token');  
-  
-        const response = await axios.post(
-          'https://localhost:7251/api/restaurant-manager/CreateMangerRestaurant',
-          formData,
-          {
-            headers: { 
-              'Content-Type': 'multipart/form-data',
-              'Authorization': `Bearer ${token}`  
-            }
-          }
-        );
+      const token = localStorage.getItem('token');
 
-        console.log("✅ Restaurant Created:", JSON.stringify(response.data, null, 2));
+      const response = await axios.post(
+        'https://localhost:7251/api/restaurant-manager/CreateMangerRestaurant',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
 
-      alert("✅ Restaurant added successfully!");
-      // setRestaurantData({ name: '', location: '', description: '', status: 0 });
-      // setImage(null);
+      console.log("✅ Restaurant Created:", response.data);
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: '✅ Restaurant added successfully!',
+      });
+
+      // Optionally clear the form
+      setRestaurantData({ name: '', location: '', description: '' });
+      setImage(null);
 
     } catch (error) {
       console.error(error);
-      alert("❌ Error adding restaurant!");
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Error!',
+        text: '❌ Failed to add restaurant. Please try again.',
+      });
     }
   };
 
@@ -101,7 +117,6 @@ export default function AddRestaurant() {
             required
           ></textarea>
         </div>
-
 
         <div className="mb-3">
           <label>Restaurant Image</label>

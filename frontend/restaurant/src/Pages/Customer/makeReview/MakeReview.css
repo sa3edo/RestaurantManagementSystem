@@ -1,0 +1,58 @@
+/* MakeReview.css */
+.star-rating {
+  display: flex;
+  flex-direction: row;
+}
+
+.star {
+  transition: color 0.3s;
+  cursor: pointer;
+}
+
+.star.fas {
+  color: #ea6434;
+}
+
+.star.far {
+  color: #ccc;
+}
+
+
+.custom-submit-btn {
+  background-image: linear-gradient(to right, #FF512F 0%, #F09819 51%, #FF512F 100%);
+  background-size: 200% auto;
+  color: white;
+  font-weight: bold;
+  transition: 0.5s;
+  border: none;
+  border-radius: 10px;
+  text-align: center;
+  text-transform: uppercase;
+  font-family: var(--main-font);
+}
+
+.custom-submit-btn:hover {
+  background-position: right center;
+  color: white;
+  text-decoration: none;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+
+/* Cancel button styling */
+.custom-cancel-btn {
+  background-color: var(--accent-color);
+  color: var(--text-dark);
+  font-weight: 500;
+  border: none;
+  border-radius: 10px;
+  transition: 0.3s ease;
+  font-family: var(--main-font);
+}
+
+.custom-cancel-btn:hover {
+  background-color: #fcd7c0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}

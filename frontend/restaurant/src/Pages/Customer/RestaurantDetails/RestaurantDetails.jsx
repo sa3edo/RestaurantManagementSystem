@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
-import './RestaurantDetails.css'; // ملف CSS للأنيميشن والتنسيق
+import './RestaurantDetails.css';
 import '../../../App.css';
 
 export default function RestaurantDetails() {
@@ -16,6 +16,10 @@ export default function RestaurantDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+
   const fetchRestaurantDetails = async () => {
     try {
       const response = await axios.get(
@@ -27,6 +31,7 @@ export default function RestaurantDetails() {
         }
       );
       setRestaurant(response.data);
+      console.log(response.data)
       setLoading(false);
     } catch (err) {
       console.error('Error fetching restaurant details:', err);
@@ -92,17 +97,44 @@ export default function RestaurantDetails() {
     }
   };
 
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+    setSearching(true);
+    try {
+      const response = await axios.get(
+        `https://localhost:7251/api/User/GetRestaurantMenu/${restaurantID}/menu?search=${encodeURIComponent(searchQuery)}&page=1`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        }
+      );
+      setSearchResults(response.data.items || []);
+    } catch (error) {
+      console.error('Error searching menu:', error);
+      setError('❌ Failed to search menu.');
+    } finally {
+      setSearching(false);
+    }
+  };
+
   useEffect(() => {
     if (restaurantID) {
       fetchRestaurantDetails();
     }
   }, [restaurantID]);
 
+  useEffect(() => {
+    if (searchQuery === '') {
+      setSearchResults([]);
+    }
+  }, [searchQuery]);
+
   if (loading) return <div className="text-center mt-5 fs-4">Loading restaurant details...</div>;
   if (error) return <div className="text-danger text-center mt-5 fs-4">{error}</div>;
 
   return (
-    <div className="container res-details ">
+    <div className="container res-details">
       <h2 className="text-center section-title mb-4 display-5">
         <i className="fas fa-home"></i> {restaurant?.name}
       </h2>
@@ -116,7 +148,7 @@ export default function RestaurantDetails() {
           />
         )}
 
-        <div className="mb-3" >
+        <div className="mb-3">
           <h4 className="fw-bold">
             <i className="fas fa-file-alt"></i> Description:
           </h4>
@@ -130,7 +162,7 @@ export default function RestaurantDetails() {
           <p className="text-dark fs-5">{restaurant?.location}</p>
         </div>
 
-        <div  className="text-center mt-4 d-flex justify-content-center gap-3 flex-wrap">
+        <div className="text-center mt-4 d-flex justify-content-center gap-3 flex-wrap">
           <button className="custom-btn back-btn" onClick={() => navigate(-1)}>
             <i className="fas fa-arrow-left"></i> Back
           </button>
@@ -145,6 +177,50 @@ export default function RestaurantDetails() {
           </button>
         </div>
 
+        {/* 🔍 Search Bar */}
+        <div className="search-bar mb-4 mt-5 d-flex gap-2 align-items-center justify-content-center flex-wrap">
+          <input
+            type="text"
+            className="form-control w-50"
+            placeholder="🔍 Search menu items..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+          />
+          <button className="custom-btn search-btn" onClick={handleSearch}>
+            Search
+          </button>
+        </div>
+
+        {/* 🔍 Search Results */}
+        {searchResults.length > 0 && (
+          <div className="mt-4">
+            <h5 className="fw-bold">
+              <i className="fas fa-search"></i> Search Results:
+            </h5>
+            <ul className="list-group mt-3">
+              {searchResults.map((item) => (
+                <li
+                  key={item.menuItemID}
+                  className="list-group-item d-flex align-items-center gap-3 p-3 rounded shadow-sm mb-2"
+                  style={{ backgroundColor: "#eef" }}
+                >
+                  {item.imgUrl && (
+                    <img
+                      src={`https://localhost:7251/MenuImages/${item.imgUrl}`}
+                      alt={item.name}
+                      className="img-thumbnail"
+                      style={{ width: '50px', height: '50px', objectFit: 'cover' }}
+                    />
+                  )}
+                  <span className="fw-medium">{item.name} - ${item.price || 'N/A'}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* 📂 Categories */}
         {showCategories && (
           <div className="mt-5">
             <h4 className="fw-bold mb-3">
@@ -165,7 +241,7 @@ export default function RestaurantDetails() {
                         <i className="fas fa-utensils me-2"></i> {cat.name}
                       </button>
                     </h2>
-                    <div  className={`accordion-body-wrapper ${isExpanded ? 'expanded' : ''}`}>
+                    <div className={`accordion-body-wrapper ${isExpanded ? 'expanded' : ''}`}>
                       <div className="accordion-body">
                         {menuByCategory[cat.categoryID] && menuByCategory[cat.categoryID].length > 0 ? (
                           <ul className="list-group">

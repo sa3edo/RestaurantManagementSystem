@@ -8,38 +8,79 @@ function MyReservations() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const fetchReservations = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(
+                'https://localhost:7251/api/User/GetUserReservations',
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'accept': '*/*'
+                    }
+                }
+            );
+            if (Array.isArray(response.data)) {
+                setReservations(response.data);
+                console.log(response.data);
+            } else {
+                setReservations([]);
+            }
+        } catch (err) {
+            setError('Failed to fetch reservations.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to fetch reservations. Please try again later.'
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchReservations = async () => {
-            try {
-                const token = localStorage.getItem('token');
-                const response = await axios.get(
-                    'https://localhost:7251/api/User/GetUserReservations',
-                    {
+        fetchReservations();
+    }, []);
+
+    const handleCancel = async (reservationID) => {
+        const token = localStorage.getItem('token');
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'You are about to cancel this reservation.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, cancel it!',
+            cancelButtonText: 'No, keep it'
+        }).then(async (confirmResult) => {
+            if (confirmResult.isConfirmed) {
+                try {
+                    await axios.delete(`https://localhost:7251/api/User/CancelReservation/${reservationID}`, {
                         headers: {
                             'Authorization': `Bearer ${token}`,
                             'accept': '*/*'
                         }
-                    }
-                );
-                if (Array.isArray(response.data)) {
-                    setReservations(response.data);
-                } else {
-                    setReservations([]);
-                }
-            } catch (err) {
-                setError('Failed to fetch reservations.');
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Failed to fetch reservations. Please try again later.'
-                });
-            } finally {
-                setLoading(false);
-            }
-        };
+                    });
 
-        fetchReservations();
-    }, []);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Cancelled!',
+                        text: 'Your reservation has been cancelled.'
+                    });
+
+                    // ✅ Reload reservations
+                    fetchReservations();
+                } catch (err) {
+                    console.error('Cancellation error:', err);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to cancel reservation.'
+                    });
+                }
+            }
+        });
+    };
 
     if (loading) {
         return (
@@ -65,7 +106,7 @@ function MyReservations() {
                     reservations.map((res, index) => (
                         <div className="col-md-4 mb-4" key={index}>
                             <div className="card shadow-sm h-100">
-                                <div className="card-body ">
+                                <div className="card-body">
                                     <h5 className="card-title text-primary">
                                         <i className="fas fa-utensils me-2"></i>
                                         {res.restaurantName || 'Restaurant'}
@@ -87,11 +128,16 @@ function MyReservations() {
                                             <i className="fas fa-chair me-2 text-secondary"></i>
                                             <strong>Table:</strong> {res.tableId}
                                         </li>
-                                        <li>
+                                        <li className="mb-2">
                                             <i className="fas fa-clipboard-list me-2 text-secondary"></i>
                                             <strong>Status:</strong>
                                             <span
-                                                className={`status-pill ${res.status === 0 ? 'status-pending' : res.status === 1 ? 'status-complete' : 'status-cancel'}`}
+                                                className={`status-pill ${res.status === 0
+                                                    ? 'status-pending'
+                                                    : res.status === 1
+                                                        ? 'status-complete'
+                                                        : 'status-cancel'
+                                                    }`}
                                             >
                                                 {res.status === 0
                                                     ? 'Pending'
@@ -101,6 +147,15 @@ function MyReservations() {
                                             </span>
                                         </li>
                                     </ul>
+
+                                    {res.status === 0 && (
+                                        <button
+                                            className="btn btn-outline-danger w-100 mt-3"
+                                            onClick={() => handleCancel(res.reservationID)}
+                                        >
+                                            Cancel Reservation
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>

@@ -21,7 +21,7 @@ export default function MyOrders() {
         try {
             setLoading(true);
             const response = await axios.get('https://localhost:7251/api/User/orders');
-            
+
             // Now fetch the restaurant name for each order
             const ordersWithRestaurantDetails = await Promise.all(response.data.map(async (order) => {
                 if (order.restaurantID) {
@@ -105,9 +105,9 @@ export default function MyOrders() {
                             <p><strong>Total:</strong> ${order.totalAmount?.toFixed(2)}</p>
                             <p><strong>Status:</strong>
                                 <span className={`status-pill ${order.status === 1 ? 'status-complete' :
-                                        order.status === 0 ? 'status-pending' :
-                                            order.status === 2 ? 'status-cancel' :
-                                                'status-unknown'
+                                    order.status === 0 ? 'status-pending' :
+                                        order.status === 2 ? 'status-cancel' :
+                                            'status-unknown'
                                     }`}>
                                     {order.status === 1 ? 'Completed' :
                                         order.status === 0 ? 'Pending' :
@@ -118,11 +118,13 @@ export default function MyOrders() {
                             <div className="card-buttons">
                                 <button
                                     onClick={() => navigate(`/customer/payment/${order.orderID}`)}
-                                    className="orange-gradient-btn"
+                                    //  className={`delete-btn ${order.status === 1 ? 'disabled-btn' : ''}`}
+                                    
                                 >
                                     Pay Now
                                 </button>
                                 <button
+                                    disabled={order.status === 1}
                                     onClick={() => {
                                         Swal.fire({
                                             title: 'Are you sure?',
@@ -138,10 +140,11 @@ export default function MyOrders() {
                                             }
                                         });
                                     }}
-                                    className="delete-btn"
+                                    className={`delete-btn ${order.status === 1 ? 'disabled-btn' : ''}`}
                                 >
                                     Delete
                                 </button>
+
                             </div>
                         </div>
                     ))

@@ -10,7 +10,7 @@ const GetAllUsers = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const navigate = useNavigate();
-
+    const userRloe = localStorage.getItem('role')
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('role');
@@ -312,144 +312,108 @@ const GetAllUsers = () => {
     if (error) return <div className="text-center p-4 text-red-500">Error: {error}</div>;
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            {/* Header */}
-            <header className="bg-white shadow">
-                <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-                    <div className="flex justify-between items-center mb-6">
-                        <h1 className="text-2xl font-bold text-gray-800">Users Management</h1>
-                        <div className="flex space-x-4">
-                            <button
-                                onClick={() => navigate('/admin/add-restaurant')}
-                                className="btn btn-primary"
-                            >
-                                Create Restaurant
-                            </button>
-                            <button
-                                onClick={() => navigate('/admin/all-restaurants')}
-                                className="btn btn-primary"
-                            >
-                                Show All Restaurants
-                            </button>
-                            <button
-                                onClick={() => navigate('/admin/add-restaurant-manager')}
-                                className="btn btn-primary"
-                            >
-                                Add Restaurant Manager
-                            </button>
-                            <button
-                                onClick={() => navigate('/admin/admin-restaurants')}
-                                className="btn btn-primary"
-                            >
-                                Show Admin Restaurants
-                            </button>
-                            <button
-                                onClick={handleLogout}
-                                className="btn btn-danger"
-                            >
-                                Logout
-                            </button>
-                        </div>
-                    </div>
+        <div className="container py-5">
+            <div className="bg-white shadow rounded p-4">
+                <h1 className="fw-semibold mb-4">Users Management</h1>
+
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                    <button onClick={() => navigate(-1)} className="btn btn-outline-secondary">
+                        <i className="fa-solid fa-arrow-left"></i> Back
+                    </button>
+                    <button onClick={() => fetchUsers(currentPage)} className="btn btn-outline-info">
+                        <i className="fa-solid fa-rotate"></i> Refresh
+                    </button>
                 </div>
-            </header>
 
-            {/* Main Content */}
-            <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                <div className="px-4 py-6 sm:px-0">
-                    <div className="bg-white shadow rounded-lg p-6">
-                        <h2 className="text-xl font-semibold mb-4">Users Management</h2>
+                {users.length === 0 ? (
+                    <div className="text-center p-4 text-muted">No users found</div>
+                ) : (
+                    <div className="table-responsive">
+                        <table className="table table-hover align-middle">
+                            <thead className="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {users.map((user) => (
+                                    <tr key={user.id}>
+                                        <td>{user.id}</td>
+                                        <td>{user.email}</td>
+                                        <td>{Array.isArray(user.roles) ? user.roles.join(', ') : user.roles}</td>
+                                        <td>
+                                            <div className="d-flex gap-2 flex-wrap">
+                                                <button
+                                                    className="btn btn-sm btn-outline-danger"
+                                                    onClick={() => handleDeleteUser(user.id)}
+                                                    title="Delete User"
+                                                >
+                                                    <i className="fa-solid fa-trash"></i>
+                                                </button>
 
-                        {users.length === 0 ? (
-                            <div className="text-center p-4 text-gray-500">No users found</div>
-                        ) : (
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full bg-white border border-gray-300">
-                                    <thead>
-                                        <tr>
-                                            <th className="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                ID
-                                            </th>
-                                            <th className="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Email
-                                            </th>
-                                            <th className="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Role
-                                            </th>
-                                            <th className="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Actions
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {users.map((user) => (
-                                            <tr key={user.id}>
-                                                <td className="px-6 py-4 whitespace-nowrap border-b border-gray-300">
-                                                    {user.id}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap border-b border-gray-300">
-                                                    {user.email}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap border-b border-gray-300">
-                                                    {Array.isArray(user.roles) ? user.roles.join(', ') : user.roles}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap border-b border-gray-300">
-                                                    <div className="flex space-x-2">
+                                                <button
+                                                    className={`btn btn-sm ${user.isLocked ? 'btn-success' : 'btn-warning'}`}
+                                                    onClick={() =>
+                                                        user.isLocked ? handleUnlockUser(user.id) : handleLockUser(user.id)
+                                                    }
+                                                    title={user.isLocked ? 'Unlock User' : 'Lock User'}
+                                                    
+                                                >
+                                                    <i className={`fa-solid ${user.isLocked ? 'fa-lock-open' : 'fa-lock'}`}></i>
+                                                </button>
+
+                                                {Array.isArray(user.roles) &&
+                                                    user.roles.length === 1 &&
+                                                    user.roles.includes("Customer") && (
                                                         <button
-                                                            onClick={() => handleDeleteUser(user.id)}
-                                                            className="btn btn-danger"
+                                                            className="btn btn-sm btn-outline-success"
+                                                            onClick={() =>
+                                                                navigate('/admin/add-restaurant-manager', {
+                                                                    state: { email: user.email }
+                                                                })
+                                                            }
+                                                            title="Promote to Manager"
                                                         >
-                                                            Delete
+                                                            <i className="fa-solid fa-arrow-up"></i> Promote
                                                         </button>
-                                                        {user.isLocked ? (
-                                                            <button
-                                                                onClick={() => handleUnlockUser(user.id)}
-                                                                className="btn btn-success"
-                                                            >
-                                                                Unlock
-                                                            </button>
-                                                        ) : (
-                                                            <button
-                                                                onClick={() => handleLockUser(user.id)}
-                                                                className="btn btn-warning"
-                                                            >
-                                                                Lock
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
+                                                    )}
+                                            </div>
+                                        </td>
 
-                        {/* Pagination */}
-                        <div className="mt-4 flex justify-center items-center">
-                            <button
-                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                disabled={currentPage === 1}
-                                className="btn btn-info"
-                            >
-                                Previous
-                            </button>
-                            <span className="px-4 py-2">
-                                Page {currentPage} of {totalPages}
-                            </span>
-                            <button
-                                onClick={() => setCurrentPage(prev => prev + 1)}
-                                disabled={currentPage >= totalPages || users.length === 0}
-                                className="btn btn-success"
-                            >
-                                Next
-                            </button>
-                        </div>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
+                )}
+
+                {/* Pagination */}
+                <div className="mt-4 d-flex justify-content-center align-items-center gap-3">
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className="btn btn-outline-primary"
+                    >
+                        <i className="fa-solid fa-chevron-left"></i> Previous
+                    </button>
+                    <span className="fw-medium">
+                        Page {currentPage} of {totalPages}
+                    </span>
+                    <button
+                        onClick={() => setCurrentPage(prev => prev + 1)}
+                        disabled={currentPage >= totalPages || users.length === 0}
+                        className="btn btn-primary"
+                    >
+                        Next <i className="fa-solid fa-chevron-right"></i>
+                    </button>
                 </div>
-            </main>
+            </div>
         </div>
     );
+
 };
 
 export default GetAllUsers;

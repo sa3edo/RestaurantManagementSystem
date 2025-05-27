@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
+import Swal from 'sweetalert2';
 
 const formatTime = (time) => {
   const [hours, minutes] = time.split(':');
@@ -51,7 +52,17 @@ export default function AllTimeSlots() {
   };
 
   const deleteTimeSlot = async (timeSlotID) => {
-    if (!window.confirm('Are you sure you want to delete this time slot?')) return;
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'This will permanently delete the time slot.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!'
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
       await axios.delete(
@@ -60,13 +71,15 @@ export default function AllTimeSlots() {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         }
       );
-      alert('✅ Time slot deleted successfully!');
+
+      Swal.fire('Deleted!', 'The time slot has been removed.', 'success');
       fetchTimeSlots();
     } catch (err) {
       console.error('❌ Error deleting time slot:', err);
-      alert('❌ Failed to delete time slot.');
+      Swal.fire('Error', 'Failed to delete the time slot.', 'error');
     }
   };
+
 
   useEffect(() => {
     if (restaurantId) {
@@ -80,7 +93,7 @@ export default function AllTimeSlots() {
 
   return (
     <div className="container mt-5">
-      <h3 className="text-center mb-4">🕒 Time Slots for <span className="text-primary">{restaurantName}</span></h3>
+      <h3 className="text-center mb-4 section-title">🕒 Time Slots for <span className="text-primary">{restaurantName}</span></h3>
 
       {timeSlots.length === 0 ? (
         <p className="text-center text-muted">No time slots available.</p>
